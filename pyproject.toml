@@ -1,0 +1,44 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ana-flow"
+version = "0.1.0"
+description = "ana-flow project"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "inquirerpy>=0.3.4",
+    "langchain-community>=0.3.24",
+    "langchain-mcp-adapters>=0.1.1",
+    "langchain-openai>=0.3.8",
+    "langgraph>=0.4.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=24.2.0",
+    "langgraph-cli[inmem]>=0.2.10",
+    "langchain-mcp-adapters>=0.0.9",
+]
+
+test = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=src --cov-report=term-missing"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ana_flow"]
+
+[project.scripts]
+ana-flow = "ana_flow:main"
