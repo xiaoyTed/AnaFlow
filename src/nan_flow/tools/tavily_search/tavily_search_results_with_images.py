@@ -8,7 +8,7 @@ from langchain.callbacks.manager import (
 from langchain_community.tools.tavily_search.tool import TavilySearchResults
 from pydantic import Field
 
-from src.tools.tavily_search.tavily_search_api_wrapper import (
+from .tavily_search_api_wrapper import (
     EnhancedTavilySearchAPIWrapper,
 )
 

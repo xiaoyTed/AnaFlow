@@ -446,16 +446,28 @@ async def _setup_and_execute_agent_step(
 
     # Create and execute agent with MCP tools if available
     if mcp_servers:
-        async with MultiServerMCPClient(mcp_servers) as client:
-            loaded_tools = default_tools[:]
-            for tool in client.get_tools():
+        client = MultiServerMCPClient(mcp_servers)
+        loaded_tools = default_tools[:]
+        try:
+            mcp_tools = await client.get_tools()
+            for tool in mcp_tools:
                 if tool.name in enabled_tools:
                     tool.description = (
                         f"Powered by '{enabled_tools[tool.name]}'.\n{tool.description}"
                     )
                     loaded_tools.append(tool)
-            agent = create_agent(agent_type, agent_type, loaded_tools, agent_type)
-            return await _execute_agent_step(state, agent, agent_type)
+        finally:
+            # Assuming MultiServerMCPClient might have an aclose method for cleanup,
+            # similar to other Langchain clients. If not, this can be removed.
+            # Based on common patterns, it's good practice to close clients.
+            # If client.aclose() doesn't exist or is not needed, this block can be simplified/removed.
+            if hasattr(client, "aclose"):
+                await client.aclose()
+            elif hasattr(client, "close") and callable(client.close): # type: ignore
+                client.close() # type: ignore
+
+        agent = create_agent(agent_type, agent_type, loaded_tools, agent_type)
+        return await _execute_agent_step(state, agent, agent_type)
     else:
         # Use default tools if no MCP servers are configured
         agent = create_agent(agent_type, agent_type, default_tools, agent_type)

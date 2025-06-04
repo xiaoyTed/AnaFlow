@@ -3,9 +3,9 @@
 
 from langgraph.prebuilt import create_react_agent
 
-from src.prompts import apply_prompt_template
-from src.llms.llm import get_llm_by_type
-from src.config.agents import AGENT_LLM_MAP
+from ..prompts import apply_prompt_template
+from ..llms.llm import get_llm_by_type
+from ..config.agents import AGENT_LLM_MAP
 
 
 # Create agents using configured LLM types

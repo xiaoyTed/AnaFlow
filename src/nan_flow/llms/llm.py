@@ -5,9 +5,10 @@ from pathlib import Path
 from typing import Any, Dict
 
 from langchain_openai import ChatOpenAI
+from langchain_ollama.llms import OllamaLLM
 
-from src.config import load_yaml_config
-from src.config.agents import LLMType
+from ..config import load_yaml_config
+from ..config.agents import LLMType
 
 # Cache for LLM instances
 _llm_cache: dict[LLMType, ChatOpenAI] = {}
@@ -24,7 +25,13 @@ def _create_llm_use_conf(llm_type: LLMType, conf: Dict[str, Any]) -> ChatOpenAI:
         raise ValueError(f"Unknown LLM type: {llm_type}")
     if not isinstance(llm_conf, dict):
         raise ValueError(f"Invalid LLM Conf: {llm_type}")
-    return ChatOpenAI(**llm_conf)
+
+    llm_provider = conf.get("MODEL_PROVIDER")
+    
+    if llm_provider["provider"] == "ollama":
+        return OllamaLLM(**llm_conf)
+    elif llm_provider["provider"] == "openai":
+        return ChatOpenAI(**llm_conf)
 
 
 def get_llm_by_type(
@@ -37,7 +44,7 @@ def get_llm_by_type(
         return _llm_cache[llm_type]
 
     conf = load_yaml_config(
-        str((Path(__file__).parent.parent.parent / "conf.yaml").resolve())
+        str((Path(__file__).parent.parent.parent.parent / "conf.yaml").resolve())
     )
     llm = _create_llm_use_conf(llm_type, conf)
     _llm_cache[llm_type] = llm

@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from .graph import build_graph
+from nan_flow.graph import build_graph
 
 # Configure logging
 logging.basicConfig(
@@ -9,11 +9,12 @@ logging.basicConfig(
 )
 
 # save logging information to a file
-log_path = "./logs"
 import os
+log_path = "./logs"
+log_name = os.path.join(log_path, "agent_workflow.log")
 if not os.path.exists(os.path.dirname(log_path)):
     os.makedirs(os.path.dirname(log_path))
-file_handler = logging.FileHandler(log_path, mode="a", encoding="utf-8")
+file_handler = logging.FileHandler(log_name, mode="a", encoding="utf-8")
 file_handler.setLevel(logging.INFO)
 file_handler.setFormatter(
     logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
