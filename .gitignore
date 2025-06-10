@@ -8,3 +8,11 @@ wheels/
 
 # Virtual environments
 .venv
+.coverage
+
+#结果和日志
+logs/
+results/
+local_data/
+/tests/debug_info.txt
+/tests/test_questions.txt

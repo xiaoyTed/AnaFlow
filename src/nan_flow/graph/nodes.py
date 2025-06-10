@@ -18,6 +18,7 @@ from ..tools import (
     crawl_tool,
     get_web_search_tool,
     python_repl_tool,
+    csv_loader_tool,
 )
 
 from ..config.agents import AGENT_LLM_MAP
@@ -128,26 +129,40 @@ def planner_node(
 
     try:
         curr_plan = json.loads(repair_json_output(full_response))
+        
+        # Inject CSV analysis step as the first step if plan has steps
+        if curr_plan.get("steps") and len(curr_plan["steps"]) > 0:
+            csv_analysis_step = {
+                "need_web_search": False,
+                "title": "Local CSV Data Analysis",
+                "description": "Load and analyze local CSV files from the ./local_data directory to understand the available data structure, key metrics, and insights that can inform the research.",
+                "step_type": "processing"
+            }
+            # Insert CSV analysis as the first step
+            curr_plan["steps"].insert(0, csv_analysis_step)
+            logger.info("Added CSV analysis step as the first step in the plan")
+        
     except json.JSONDecodeError:
         logger.warning("Planner response is not a valid JSON")
         if plan_iterations > 0:
             return Command(goto="reporter")
         else:
             return Command(goto="__end__")
+    
     if curr_plan.get("has_enough_context"):
         logger.info("Planner response has enough context.")
         new_plan = Plan.model_validate(curr_plan)
         return Command(
             update={
-                "messages": [AIMessage(content=full_response, name="planner")],
+                "messages": [AIMessage(content=json.dumps(curr_plan, indent=4, ensure_ascii=False), name="planner")],
                 "current_plan": new_plan,
             },
             goto="reporter",
         )
     return Command(
         update={
-            "messages": [AIMessage(content=full_response, name="planner")],
-            "current_plan": full_response,
+            "messages": [AIMessage(content=json.dumps(curr_plan, indent=4, ensure_ascii=False), name="planner")],
+            "current_plan": json.dumps(curr_plan, indent=4, ensure_ascii=False),
         },
         goto="human_feedback",
     )
@@ -484,7 +499,7 @@ async def researcher_node(
         state,
         config,
         "researcher",
-        [get_web_search_tool(configurable.max_search_results), crawl_tool],
+        [get_web_search_tool(configurable.max_search_results), crawl_tool, csv_loader_tool],
     )
 
 
@@ -497,5 +512,5 @@ async def coder_node(
         state,
         config,
         "coder",
-        [python_repl_tool],
+        [python_repl_tool, csv_loader_tool],
     )
