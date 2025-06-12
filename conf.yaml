@@ -2,11 +2,18 @@
 # Read the `docs/configuration_guide.md` carefully, and update the configurations to match your specific settings and requirements.
 # - Replace `api_key` with your own credentials
 # - Replace `base_url` and `model` name if you want to use a custom model
+#ogZZt7D8OrKh8jW2L66icLqLR20c5RdJaM54Tjb65b9FL76swiU0Eu2BUvdhr0aKZY5nKdzlXoZu
 
 BASIC_MODEL:
   base_url: https://api.deepseek.com
   model: "deepseek-chat"
   api_key: sk-1328bc4f0077467680a1f22ce7764ae3
+  max_tokens: 8192
+
+REPORTER_MODEL:
+  base_url: https://llmproxy.gwm.cn/v1
+  model: default/deepseek-r1
+  api_key: ogZZt7D8OrKh8jW2L66icLqLR20c5RdJaM54Tjb65b9FL76swiU0Eu2BUvdhr0aKZY5nKdzlXoZu
   max_tokens: 8192
 
 
