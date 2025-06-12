@@ -36,10 +36,10 @@ logger = logging.getLogger(__name__)
 
 @tool
 def handoff_to_planner(
-    task_title: Annotated[str, "The title of the task to be handed off."],
+    task_title: Annotated[str, "The title of the market analysis task to be handed off."],
     locale: Annotated[str, "The user's detected language locale (e.g., en-US, zh-CN)."],
 ):
-    """Handoff to planner agent to do plan."""
+    """Handoff to planner agent to create market analysis plan."""
     # This tool is not returning anything: we're just using it
     # as a way for LLM to signal that it needs to hand off to planner agent
     return
@@ -48,7 +48,7 @@ def handoff_to_planner(
 def background_investigation_node(
     state: State, config: RunnableConfig
 ) -> Command[Literal["planner"]]:
-    logger.info("background investigation node is running.")
+    logger.info("Market background investigation node is running.")
     configurable = Configuration.from_runnable_config(config)
     query = state["messages"][-1].content
     if SELECTED_SEARCH_ENGINE == SearchEngine.TAVILY:
@@ -82,8 +82,8 @@ def background_investigation_node(
 def planner_node(
     state: State, config: RunnableConfig
 ) -> Command[Literal["human_feedback", "reporter"]]:
-    """Planner node that generate the full plan."""
-    logger.info("Planner generating full plan")
+    """Planner node that generates the market analysis plan."""
+    logger.info("Planner generating market analysis plan")
     configurable = Configuration.from_runnable_config(config)
     plan_iterations = state["plan_iterations"] if state.get("plan_iterations", 0) else 0
     messages = apply_prompt_template("planner", state, configurable)
@@ -97,7 +97,7 @@ def planner_node(
             {
                 "role": "user",
                 "content": (
-                    "background investigation results of user query:\n"
+                    "Market background investigation results of user query:\n"
                     + state["background_investigation_results"]
                     + "\n"
                 ),
@@ -150,7 +150,7 @@ def planner_node(
             return Command(goto="__end__")
     
     if curr_plan.get("has_enough_context"):
-        logger.info("Planner response has enough context.")
+        logger.info("Planner response has enough market context.")
         new_plan = Plan.model_validate(curr_plan)
         return Command(
             update={
@@ -175,7 +175,7 @@ def human_feedback_node(
     # check if the plan is auto accepted
     auto_accepted_plan = state.get("auto_accepted_plan", False)
     if not auto_accepted_plan:
-        feedback = interrupt("Please Review the Plan.")
+        feedback = interrupt("Please Review the Market Analysis Plan.")
 
         # if the feedback is not accepted, return the planner node
         if feedback and str(feedback).upper().startswith("[EDIT_PLAN]"):
@@ -188,7 +188,7 @@ def human_feedback_node(
                 goto="planner",
             )
         elif feedback and str(feedback).upper().startswith("[ACCEPTED]"):
-            logger.info("Plan is accepted by user.")
+            logger.info("Market analysis plan is accepted by user.")
         else:
             raise TypeError(f"Interrupt value of {feedback} is not supported.")
 
@@ -223,8 +223,8 @@ def human_feedback_node(
 def coordinator_node(
     state: State,
 ) -> Command[Literal["planner", "background_investigator", "__end__"]]:
-    """Coordinator node that communicate with customers."""
-    logger.info("Coordinator talking.")
+    """Coordinator node that communicates with customers about market analysis."""
+    logger.info("Market analysis coordinator talking.")
     messages = apply_prompt_template("coordinator", state)
     response = (
         get_llm_by_type(AGENT_LLM_MAP["coordinator"])
@@ -257,7 +257,12 @@ def coordinator_node(
         logger.debug(f"Coordinator response: {response}")
 
     return Command(
-        update={"locale": locale},
+        update={
+            "messages": [
+                AIMessage(content=response.content, name="coordinator"),
+            ],
+            "locale": locale,
+        },
         goto=goto,
     )
 
@@ -280,7 +285,7 @@ def reporter_node(state: State):
     # Add a reminder about the new report format, citation style, and table usage
     invoke_messages.append(
         HumanMessage(
-            content="IMPORTANT: Structure your report according to the format in the prompt. Remember to include:\n\n1. Key Points - A bulleted list of the most important findings\n2. Overview - A brief introduction to the topic\n3. Detailed Analysis - Organized into logical sections\n4. Survey Note (optional) - For more comprehensive reports\n5. Key Citations - List all references at the end\n\nFor citations, DO NOT include inline citations in the text. Instead, place all citations in the 'Key Citations' section at the end using the format: `- [Source Title](URL)`. Include an empty line between each citation for better readability.\n\nPRIORITIZE USING MARKDOWN TABLES for data presentation and comparison. Use tables whenever presenting comparative data, statistics, features, or options. Structure tables with clear headers and aligned columns. Example table format:\n\n| Feature | Description | Pros | Cons |\n|---------|-------------|------|------|\n| Feature 1 | Description 1 | Pros 1 | Cons 1 |\n| Feature 2 | Description 2 | Pros 2 | Cons 2 |",
+            content="IMPORTANT: Structure your report according to the format in the prompt. Remember to include:\n\n1. Title - A concise title for the market analysis report\n2. Key Market Insights - 4-6 bulleted points of the most important findings\n3. Market Overview - Brief introduction and context (1-2 paragraphs)\n4. Detailed Market Analysis - Organized into logical sections with clear headings\n5. Market Survey Note (optional) - For more comprehensive reports\n\nWhen presenting market data:\n- Include relevant market visualizations from previous steps\n- Present facts and sales data accurately and impartially\n- Organize information logically with clear section headings\n- Highlight key market trends and sales insights\n- Use clear and concise language\n- Rely strictly on provided market data\n- Never fabricate or assume market information\n- Clearly distinguish between market facts and analysis\n\nPRIORITIZE USING MARKDOWN TABLES for market data presentation and comparison. Structure tables with clear headers and aligned columns. Example table format:\n\n| Market Metric | Value | YoY Change | Notes |\n|--------------|-------|------------|-------|\n| Metric 1 | Value 1 | Change 1 | Notes 1 |\n| Metric 2 | Value 2 | Change 2 | Notes 2 |",
             name="system",
         )
     )
@@ -303,10 +308,10 @@ def reporter_node(state: State):
 def research_team_node(
     state: State,
 ) -> Command[Literal["planner", "researcher", "coder"]]:
-    """Research team node that collaborates on tasks."""
-    logger.info("Research team is collaborating on tasks.")
-    current_plan = state.get("current_plan")
-    if not current_plan or not current_plan.steps:
+    """Research team node that coordinates market analysis tasks."""
+    logger.info("Market analysis research team coordinating tasks")
+    current_plan = state.get("current_plan", "")
+    if not current_plan:
         return Command(goto="planner")
     if all(step.execution_res for step in current_plan.steps):
         return Command(goto="planner")
@@ -395,6 +400,7 @@ async def _execute_agent_step(
     result = await agent.ainvoke(
         input=agent_input, config={"recursion_limit": recursion_limit}
     )
+    logger.debug(f"Current state messages: {state['messages']}")
 
     # Process the result
     response_content = result["messages"][-1].content
