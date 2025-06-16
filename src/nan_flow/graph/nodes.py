@@ -124,8 +124,6 @@ def planner_node(
         response = llm.stream(messages)
         for chunk in response:
             full_response += chunk.content
-    logger.debug(f"Current state messages: {state['messages']}")
-    logger.info(f"Planner response: {full_response}")
 
     try:
         curr_plan = json.loads(repair_json_output(full_response))
@@ -141,6 +139,7 @@ def planner_node(
             # Insert CSV analysis as the first step
             curr_plan["steps"].insert(0, csv_analysis_step)
             logger.info("Added CSV analysis step as the first step in the plan")
+
         
     except json.JSONDecodeError:
         logger.warning("Planner response is not a valid JSON")
@@ -148,6 +147,9 @@ def planner_node(
             return Command(goto="reporter")
         else:
             return Command(goto="__end__")
+        
+    logger.debug(f"Current state messages: {state['messages']}")
+    logger.info(f"Planner response: {full_response}")
     
     if curr_plan.get("has_enough_context"):
         logger.info("Planner response has enough market context.")

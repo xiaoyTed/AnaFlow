@@ -11,7 +11,12 @@
             "request": "launch",
             "program": "${workspaceFolder}/src/nan_flow/main.py",
             "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "--max_step_num",
+                "5",
+                "--interactive"
+            ]
         }
     ]
 }

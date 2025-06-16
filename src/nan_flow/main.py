@@ -67,6 +67,18 @@ def main(
         "[Ask my own question]" if language == "English" else "[自定义问题]"
     )
 
+    # Get initial question from user
+    initial_question = inquirer.select(
+        message=(
+            "Select a question or ask your own:"
+            if language == "English"
+            else "选择一个问题或提出您自己的问题:"
+        ),
+        choices=[
+            ask_own_option,
+            "Forecast sales of Geely Galaxy E5 in the Chinese market for next five month from June to November" if language == "English" else "请预测吉利银河E5未来5个月的销量，从6月到11月。",
+        ],
+    ).execute()
 
     if initial_question == ask_own_option:
         initial_question = inquirer.text(
@@ -89,7 +101,7 @@ def main(
 
 if __name__ == "__main__":
     # Set up argument parser
-    parser = argparse.ArgumentParser(description="Run the Deer")
+    parser = argparse.ArgumentParser(description="Run the Ana Flow")
     parser.add_argument("query", nargs="*", help="The query to process")
     parser.add_argument(
         "--interactive",
