@@ -62,7 +62,7 @@ async def run_agent_workflow_async(
     initial_state = {
         # Runtime Variables
         "messages": [{"role": "user", "content": user_input}],
-        "auto_accepted_plan": False,  # Changed to False to ensure we get user feedback
+        "auto_accepted_plan": True,  # Changed to False to ensure we get user feedback
         "enable_background_investigation": enable_background_investigation,
     }
     config = {

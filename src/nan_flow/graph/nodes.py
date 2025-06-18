@@ -134,7 +134,7 @@ def planner_node(
                 "need_web_search": False,
                 "title": "Local CSV Data Analysis",
                 "description": "Load and analyze local CSV files from the ./local_data directory to understand the available data structure, key metrics, and insights that can inform the research.",
-                "step_type": "processing"
+                "step_type": "loading"
             }
             # Insert CSV analysis as the first step
             curr_plan["steps"].insert(0, csv_analysis_step)
@@ -309,7 +309,7 @@ def reporter_node(state: State):
 
 def research_team_node(
     state: State,
-) -> Command[Literal["planner", "researcher", "coder"]]:
+) -> Command[Literal["planner", "researcher", "coder", "loader"]]:
     """Research team node that coordinates market analysis tasks."""
     logger.info("Market analysis research team coordinating tasks")
     current_plan = state.get("current_plan", "")
@@ -322,6 +322,8 @@ def research_team_node(
             break
     if step.step_type and step.step_type == StepType.RESEARCH:
         return Command(goto="researcher")
+    if step.step_type and step.step_type == StepType.LOADING:
+        return Command(goto="loader")
     if step.step_type and step.step_type == StepType.PROCESSING:
         return Command(goto="coder")
     return Command(goto="planner")
@@ -515,10 +517,21 @@ async def coder_node(
     state: State, config: RunnableConfig
 ) -> Command[Literal["research_team"]]:
     """Coder node that do code analysis."""
-    logger.info("Coder node is coding.")
     return await _setup_and_execute_agent_step(
         state,
         config,
         "coder",
         [python_repl_tool, csv_loader_tool],
+    )
+
+
+async def loader_node(
+    state: State, config: RunnableConfig
+) -> Command[Literal["research_team"]]:
+    """Loader node that handles loading and processing local data files."""
+    return await _setup_and_execute_agent_step(
+        state,
+        config,
+        "loader",
+        [csv_loader_tool, python_repl_tool],
     )

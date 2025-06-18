@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 class StepType(str, Enum):
     RESEARCH = "research"
     PROCESSING = "processing"
+    LOADING = "loading"
 
 
 class Step(BaseModel):
@@ -47,12 +48,28 @@ class Plan(BaseModel):
                     "title": "AI Market Research Plan",
                     "steps": [
                         {
+                            "need_web_search": False,
+                            "title": "Load Local Market Data",
+                            "description": (
+                                "Load and analyze local CSV files containing market data to understand the available data structure and key metrics."
+                            ),
+                            "step_type": "loading",
+                        },
+                        {
                             "need_web_search": True,
                             "title": "Current AI Market Analysis",
                             "description": (
                                 "Collect data on market size, growth rates, major players, and investment trends in AI sector."
                             ),
                             "step_type": "research",
+                        },
+                        {
+                            "need_web_search": False,
+                            "title": "Data Processing and Analysis",
+                            "description": (
+                                "Process the collected data to derive key insights about market trends and patterns."
+                            ),
+                            "step_type": "processing",
                         }
                     ],
                 }

@@ -33,6 +33,7 @@ You are a professional data scientist specializing in automotive market analysis
     - `numpy` for numerical operations
     - `scikit-learn` for machine learning models
     - `statsmodels` for time series analysis
+    - `arima` and `sarima` for time seriers analysis
     - `prophet` for sales forecasting
     - `xgboost` for advanced prediction models
 - Always output in the locale of **{{ locale }}**.
