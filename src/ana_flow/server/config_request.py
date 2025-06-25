@@ -3,7 +3,7 @@
 
 from pydantic import BaseModel, Field
 
-from src.server.rag_request import RAGConfigResponse
+from ana_flow.server.rag_request import RAGConfigResponse
 
 
 class ConfigResponse(BaseModel):

@@ -7,7 +7,7 @@ from typing import Annotated
 from langchain_core.tools import tool
 from .decorators import log_io
 
-from ..crawler import Crawler
+from ana_flow.crawler import Crawler
 
 logger = logging.getLogger(__name__)
 

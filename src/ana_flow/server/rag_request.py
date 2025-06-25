@@ -3,7 +3,7 @@
 
 from pydantic import BaseModel, Field
 
-from src.rag.retriever import Resource
+from ana_flow.rag.retriever import Resource
 
 
 class RAGConfigResponse(BaseModel):

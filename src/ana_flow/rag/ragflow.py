@@ -3,7 +3,7 @@
 
 import os
 import requests
-from src.rag.retriever import Chunk, Document, Resource, Retriever
+from ana_flow.rag.retriever import Chunk, Document, Resource, Retriever
 from urllib.parse import urlparse
 
 

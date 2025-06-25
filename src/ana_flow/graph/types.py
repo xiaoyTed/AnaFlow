@@ -6,7 +6,7 @@ from typing import Annotated
 
 from langgraph.graph import MessagesState
 
-from ..prompts.planner_model import Plan
+from ana_flow.prompts.planner_model import Plan
 
 
 class State(MessagesState):

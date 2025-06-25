@@ -16,3 +16,4 @@ results/
 local_data/
 /tests/debug_info.txt
 /tests/test_questions.txt
+/code_review/

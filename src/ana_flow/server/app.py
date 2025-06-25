@@ -14,12 +14,12 @@ from fastapi.responses import Response, StreamingResponse
 from langchain_core.messages import AIMessageChunk, ToolMessage, BaseMessage
 from langgraph.types import Command
 
-from src.nan_flow.config.report_style import ReportStyle
-from src.nan_flow.config.tools import SELECTED_RAG_PROVIDER
-from src.nan_flow.graph.builder import build_graph_with_memory   
-from src.nan_flow.rag.builder import build_retriever
-from src.nan_flow.rag.retriever import Resource
-from src.nan_flow.server.chat_request import (
+from ana_flow.config.report_style import ReportStyle
+from ana_flow.config.tools import SELECTED_RAG_PROVIDER
+from ana_flow.graph.builder import build_graph_with_memory   
+from ana_flow.rag.builder import build_retriever
+from ana_flow.rag.retriever import Resource
+from ana_flow.server.chat_request import (
     ChatRequest,
     EnhancePromptRequest,
     GeneratePodcastRequest,
@@ -27,25 +27,25 @@ from src.nan_flow.server.chat_request import (
     GenerateProseRequest,
     TTSRequest,
 )
-from src.nan_flow.server.mcp_request import MCPServerMetadataRequest, MCPServerMetadataResponse
-from src.nan_flow.server.mcp_utils import load_mcp_tools
-from src.nan_flow.server.rag_request import (
+from ana_flow.server.mcp_request import MCPServerMetadataRequest, MCPServerMetadataResponse
+from ana_flow.server.mcp_utils import load_mcp_tools
+from ana_flow.server.rag_request import (
     RAGConfigResponse,
     RAGResourceRequest,
     RAGResourcesResponse,
 )
-from src.nan_flow.server.config_request import ConfigResponse
-from src.nan_flow.llms.llm import get_configured_llm_models
-from src.nan_flow.tools import VolcengineTTS
+from ana_flow.server.config_request import ConfigResponse
+from ana_flow.llms.llm import get_configured_llm_models
+from ana_flow.tools import VolcengineTTS
 
 logger = logging.getLogger(__name__)
 
 INTERNAL_SERVER_ERROR_DETAIL = "Internal Server Error"
 
 app = FastAPI(
-    title="DeerFlow API",
-    description="API for Deer",
-    version="0.1.0",
+    title="AnaFlow API",
+    description="API for AnaFlow",
+    version="1.0.0",
 )
 
 # Add CORS middleware
