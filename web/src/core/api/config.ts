@@ -1,14 +1,14 @@
-import { type DeerFlowConfig } from "../config/types";
+import { type AnaFlowConfig } from "../config/types";
 
 import { resolveServiceURL } from "./resolve-service-url";
 
 declare global {
   interface Window {
-    __deerflowConfig: DeerFlowConfig;
+    __anaFlowConfig: AnaFlowConfig;
   }
 }
 
-export async function loadConfig(): Promise<DeerFlowConfig> {
+export async function loadConfig(): Promise<AnaFlowConfig> {
   try {
     const res = await fetch(resolveServiceURL("./config"));
     if (!res.ok) {
@@ -31,12 +31,12 @@ export async function loadConfig(): Promise<DeerFlowConfig> {
   }
 }
 
-export function getConfig(): DeerFlowConfig {
+export function getConfig(): AnaFlowConfig {
   if (
     typeof window === "undefined" ||
-    typeof window.__deerflowConfig === "undefined"
+    typeof window.__anaFlowConfig === "undefined"
   ) {
     throw new Error("Config not loaded");
   }
-  return window.__deerflowConfig;
+  return window.__anaFlowConfig;
 }

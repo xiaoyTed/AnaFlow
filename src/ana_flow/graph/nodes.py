@@ -334,7 +334,7 @@ def human_edit_node(
 ) -> Command[Literal["research_team"]]:
     """Human edit node that simulates human review/edit before research step."""
     logger.info("Human edit node: waiting for human input before passing to researcher node.")
-    feedback = interrupt("Please review or edit the research task before continuing.")
+    # feedback = interrupt("Please review or edit the research task before continuing.")
     # Optionally, you could process feedback here or just continue
     return Command(goto="research_team")
 

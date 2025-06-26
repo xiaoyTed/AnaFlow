@@ -39,13 +39,13 @@ export function Jumbotron() {
           <AuroraText>at Your Fingertips</AuroraText>
         </h1>
         <p className="max-w-4xl p-2 text-center text-sm opacity-85 md:text-2xl">
-          Meet DeerFlow, your personal Deep Research assistant. With powerful
+          Meet AnaFlow, your personal Deep Research assistant. With powerful
           tools like search engines, web crawlers, Python and MCP services, it
           delivers instant insights, comprehensive reports, and even captivating
           podcasts.
         </p>
         <div className="flex gap-6">
-          <Button className="hidden text-lg md:flex md:w-42" size="lg" asChild>
+          <Button className="flex text-lg md:w-42" size="lg" asChild>
             <Link
               target={
                 env.NEXT_PUBLIC_STATIC_WEBSITE_ONLY ? "_blank" : undefined
@@ -62,7 +62,7 @@ export function Jumbotron() {
         </div>
       </div>
       <div className="absolute bottom-8 flex text-xs opacity-50">
-        <p>* DEER stands for Deep Exploration and Efficient Research.</p>
+        <p>* AnaFlow is a multi-agent system for deep research.</p>
       </div>
     </section>
   );
