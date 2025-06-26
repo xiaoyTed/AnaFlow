@@ -10,6 +10,7 @@ from .nodes import (
     planner_node,
     reporter_node,
     research_team_node,
+    human_edit_node,
     researcher_node,
     coder_node,
     loader_node,
@@ -31,6 +32,7 @@ def _build_base_graph():
     builder.add_node("coder", coder_node)
     builder.add_node("loader", loader_node)
     builder.add_node("human_feedback", human_feedback_node)
+    builder.add_node("human_edit", human_edit_node)
     builder.add_edge("reporter", END)
     return builder
 

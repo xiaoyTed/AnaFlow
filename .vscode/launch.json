@@ -17,6 +17,24 @@
                 "5",
                 "--interactive"
             ]
+        },
+
+        {
+            "name": "Uvicorn: ana_flow server",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "src.ana_flow.server.app:app",
+                "--host",
+                "0.0.0.0",
+                "--port",
+                "8000",
+                "--reload"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "justMyCode": false
         }
     ]
 }

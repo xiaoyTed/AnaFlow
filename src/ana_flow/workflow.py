@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from nan_flow.graph import build_graph
+from ana_flow.graph import build_graph
 
 # Configure logging
 logging.basicConfig(
@@ -10,10 +10,10 @@ logging.basicConfig(
 
 # save logging information to a file
 import os
-log_path = "./logs"
+log_path = "./ana_flow/logs"
 log_name = os.path.join(log_path, "agent_workflow.log")
-if not os.path.exists(os.path.dirname(log_path)):
-    os.makedirs(os.path.dirname(log_path))
+if not os.path.exists(log_path):
+    os.makedirs(log_path)
 file_handler = logging.FileHandler(log_name, mode="a", encoding="utf-8")
 file_handler.setLevel(logging.INFO)
 file_handler.setFormatter(

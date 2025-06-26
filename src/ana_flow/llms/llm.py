@@ -3,6 +3,7 @@
 
 from pathlib import Path
 from typing import Any, Dict
+import os
 
 from langchain_openai import ChatOpenAI
 from langchain_ollama.llms import OllamaLLM

@@ -329,9 +329,19 @@ def research_team_node(
     return Command(goto="planner")
 
 
+def human_edit_node(
+    state: State, config: RunnableConfig
+) -> Command[Literal["research_team"]]:
+    """Human edit node that simulates human review/edit before research step."""
+    logger.info("Human edit node: waiting for human input before passing to researcher node.")
+    feedback = interrupt("Please review or edit the research task before continuing.")
+    # Optionally, you could process feedback here or just continue
+    return Command(goto="research_team")
+
+
 async def _execute_agent_step(
     state: State, agent, agent_name: str
-) -> Command[Literal["research_team"]]:
+) -> Command[Literal["research_team", "human_edit"]]:
     """Helper function to execute a step using the specified agent."""
     current_plan = state.get("current_plan")
     observations = state.get("observations", [])
@@ -413,6 +423,9 @@ async def _execute_agent_step(
     # Update the step with the execution result
     current_step.execution_res = response_content
     logger.info(f"Step '{current_step.title}' execution completed by {agent_name}")
+
+    if agent_name == "researcher":
+        return Command(goto="human_edit")
 
     return Command(
         update={
