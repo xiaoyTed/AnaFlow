@@ -10,7 +10,6 @@ import { Detective } from "~/components/deer-flow/icons/detective";
 import MessageInput, {
   type MessageInputRef,
 } from "~/components/deer-flow/message-input";
-import { ReportStyleDialog } from "~/components/deer-flow/report-style-dialog";
 import { Tooltip } from "~/components/deer-flow/tooltip";
 import { BorderBeam } from "~/components/magicui/border-beam";
 import { Button } from "~/components/ui/button";
@@ -267,7 +266,6 @@ export function InputBox({
               <Detective /> Investigation
             </Button>
           </Tooltip>
-          <ReportStyleDialog />
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <Tooltip title="Enhance prompt with AI">
