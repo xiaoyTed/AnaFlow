@@ -6,53 +6,58 @@ import os
 from typing import Annotated
 from langchain_core.tools import tool
 from .decorators import log_io
+import re
 
 @tool
 @log_io
 def csv_loader_tool(
-    file_path: Annotated[str, "The path to the local CSV file or directory to load. If directory, will load the first CSV file found."] = "./local_data"
+    file_path: Annotated[str, "The path to the local CSV file or directory to load. If directory, will load the first CSV file found."] = "./local_data",
+    file_name: Annotated[str, "file name, contained in user's prompt, always related with vehicle brand."] = ""
 ):
-    """Load a local CSV file and return the first 5 rows as a markdown table plus basic statistics. Useful for data analysis and previewing tabular data."""
+    """Load a local CSV file based on user prompt and topic. If a file is mentioned in the prompt, load it. Otherwise, load a file whose name matches the vehicle brand in the topic. Return the first 5 rows as a markdown table plus basic statistics."""
     try:
         # If file_path is a directory, find CSV files in it
         if os.path.isdir(file_path):
             csv_files = [f for f in os.listdir(file_path) if f.endswith('.csv')]
             if len(csv_files) == 0:
                 return "No CSV files found in the specified directory."
-            # Use the first CSV file found
-            actual_file_path = os.path.join(file_path, csv_files[0])
-            file_info = f"Found {len(csv_files)} CSV file(s). Loading: {csv_files[0]}\n\n"
+            selected_file = None
+            # Priority 1: file mentioned in prompt
+            for file in csv_files:
+                if file_name and file_name in file:
+                    selected_file = file
+                    break
+
+            # Priority 2: fallback to first file
+            if not selected_file:
+                selected_file = csv_files[0]
+
+            actual_file_path = os.path.join(file_path, selected_file)
+            file_info = f"Found {len(csv_files)} CSV file(s). Loading: {selected_file}\n\n"
         else:
             actual_file_path = file_path
             file_info = f"Loading file: {os.path.basename(file_path)}\n\n"
-        
         # Load the CSV file
         df = pd.read_csv(actual_file_path, encoding="gbk")
-        
         # Generate summary information
         summary = f"{file_info}"
         summary += f"**Dataset Overview:**\n"
         summary += f"- Shape: {df.shape[0]} rows × {df.shape[1]} columns\n"
         summary += f"- Columns: {', '.join(df.columns.tolist())}\n\n"
-        
         # Add data types info
         summary += f"**Data Types:**\n"
         for col, dtype in df.dtypes.items():
             summary += f"- {col}: {dtype}\n"
         summary += "\n"
-        
         # Add first 5 rows as markdown table
         summary += f"**First 5 Rows:**\n"
         summary += df.head().to_markdown(index=False)
-        
         # Add basic statistics for numeric columns
         numeric_cols = df.select_dtypes(include=['number']).columns
         if len(numeric_cols) > 0:
             summary += f"\n\n**Basic Statistics (Numeric Columns):**\n"
             summary += df[numeric_cols].describe().to_markdown()
-        
         return summary
-        
     except Exception as e:
         return f"Error loading CSV file: {e}"
 

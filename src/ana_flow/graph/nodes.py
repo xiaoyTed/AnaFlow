@@ -129,16 +129,16 @@ def planner_node(
         curr_plan = json.loads(repair_json_output(full_response))
         
         # Inject CSV analysis step as the first step if plan has steps
-        if curr_plan.get("steps") and len(curr_plan["steps"]) > 0:
-            csv_analysis_step = {
-                "need_web_search": False,
-                "title": "Local CSV Data Analysis",
-                "description": "Load and analyze local CSV files from the ./local_data directory to understand the available data structure, key metrics, and insights that can inform the research.",
-                "step_type": "loading"
-            }
-            # Insert CSV analysis as the first step
-            curr_plan["steps"].insert(0, csv_analysis_step)
-            logger.info("Added CSV analysis step as the first step in the plan")
+        # if curr_plan.get("steps") and len(curr_plan["steps"]) > 0:
+        #     csv_analysis_step = {
+        #         "need_web_search": False,
+        #         "title": "Local CSV Data Analysis",
+        #         "description": "Load and analyze local CSV files from the ./local_data directory to understand the available data structure, key metrics, and insights that can inform the research.",
+        #         "step_type": "loading"
+        #     }
+        #     # Insert CSV analysis as the first step
+        #     curr_plan["steps"].insert(0, csv_analysis_step)
+        #     logger.info("Added CSV analysis step as the first step in the plan")
 
         
     except json.JSONDecodeError:

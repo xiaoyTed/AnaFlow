@@ -55,14 +55,18 @@ Before creating a detailed plan, assess if there is sufficient context to answer
 
 Different types of steps have different web search requirements:
 
-1. **Research Steps** (`need_web_search: true`):
+1. **Data loading Step**(`need_web_seach: false`, `step_type: loading`):
+   - load file from local file path, "./local_data"
+   - read human messages, contain human target vehical brand in description
+
+2. **Research Steps** (`need_web_search: true`):
    - Gathering market data and industry trends
    - Finding historical sales information
    - Collecting competitor analysis
    - Researching current market events or news
    - Finding statistical data or industry reports
 
-2. **Data Processing Steps** (`need_web_search: false`):
+3. **Data Processing Steps** (`need_web_search: false`):
    - Sales data analysis and forecasting
    - Market trend calculations
    - Statistical computations and data processing
@@ -163,6 +167,7 @@ interface Plan {
 
 # Notes
 
+- always contain load local data step as the first step.
 - Focus on market information gathering in research steps - delegate all calculations to processing steps
 - Ensure each step has a clear, specific market data point or information to collect
 - Create a comprehensive market data collection plan that covers the most critical aspects within {{ max_step_num }} steps

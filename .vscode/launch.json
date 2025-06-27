@@ -9,12 +9,12 @@
             "name": "Python: main.py",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/src/nan_flow/main.py",
+            "program": "${workspaceFolder}/src/ana_flow/main.py",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
             "args": [
                 "--max_step_num",
-                "5",
+                "3",
                 "--interactive"
             ]
         },
