@@ -18,3 +18,4 @@ local_data/
 /tests/test_questions.txt
 /code_review/
 .cursor/
+web/.serena/
