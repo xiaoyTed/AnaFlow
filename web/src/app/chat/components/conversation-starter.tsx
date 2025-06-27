@@ -8,10 +8,10 @@ import { cn } from "~/lib/utils";
 import { Welcome } from "./welcome";
 
 const questions = [
-  "How many times taller is the Eiffel Tower than the tallest building in the world?",
-  "How many years does an average Tesla battery last compared to a gasoline engine?",
-  "How many liters of water are required to produce 1 kg of beef?",
-  "How many times faster is the speed of light compared to the speed of sound?",
+  "请预测吉利银河E5未来6个月的销量，从7月到12月。",
+  "请预测吉利银河星舰7未来6个月的销量，从7月到12月。",
+  "请预测长城坦克400 Hi4未来6个月的销量，从7月到12月。",
+  "请预测长城蓝山185未来6个月的销量，从7月到12月。",
 ];
 export function ConversationStarter({
   className,
