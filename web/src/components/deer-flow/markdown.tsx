@@ -47,6 +47,29 @@ export function Markdown({
           <Image className="rounded" src={src as string} alt={alt ?? ""} />
         </a>
       ),
+      code: ({ className, children, ...props }: React.ComponentPropsWithoutRef<'code'> & { className?: string }) => {
+        const match = /language-(\w+)/.exec(className || "");
+        const language = match ? match[1] : "";
+        const isInline = !className || !className.includes('language-');
+        
+        if (language === "svg" && !isInline) {
+          const sanitizedSVG = sanitizeSVG(String(children).replace(/\n$/, ''));
+          return (
+            <div className="my-4">
+              <div 
+                className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800"
+                dangerouslySetInnerHTML={{ __html: sanitizedSVG }}
+              />
+            </div>
+          );
+        }
+        
+        return (
+          <code className={className} {...props}>
+            {children}
+          </code>
+        );
+      },
     };
   }, [checkLinkCredibility]);
 
@@ -129,4 +152,20 @@ function dropMarkdownQuote(markdown?: string | null) {
     .replace(/^```text\n/gm, "")
     .replace(/^```\n/gm, "")
     .replace(/\n```$/gm, "");
+    // Note: SVG code blocks are preserved by ReactMarkdown's code component handling
+}
+
+function sanitizeSVG(svgContent: string): string {
+  // Remove potentially dangerous elements and attributes
+  return svgContent
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove script tags
+    .replace(/<foreignObject\b[^<]*(?:(?!<\/foreignObject>)<[^<]*)*<\/foreignObject>/gi, '') // Remove foreignObject
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '') // Remove event handlers
+    .replace(/javascript:/gi, '') // Remove javascript: URLs
+    .replace(/data:/gi, '') // Remove data: URLs
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '') // Remove iframes
+    .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '') // Remove objects
+    .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '') // Remove embeds
+    .replace(/<link\b[^<]*(?:(?!<\/link>)<[^<]*)*<\/link>/gi, '') // Remove links
+    .replace(/<meta\b[^<]*(?:(?!<\/meta>)<[^<]*)*<\/meta>/gi, ''); // Remove meta tags
 }

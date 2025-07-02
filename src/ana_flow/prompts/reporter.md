@@ -108,12 +108,14 @@ Structure your report in the following format:
   - Include data points and trend lines where appropriate
 - Example SVG structure:
 
+```svg
 <svg width="800" height="400" xmlns="http://www.w3.org/2000/svg">
   <!-- Add your SVG elements here -->
   <g class="chart">
     <!-- Data visualization elements -->
   </g>
 </svg>
+```
 
 
 # Table Guidelines
