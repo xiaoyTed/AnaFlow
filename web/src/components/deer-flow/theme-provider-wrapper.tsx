@@ -12,15 +12,10 @@ export function ThemeProviderWrapper({
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
-  const isChatPage = pathname?.startsWith("/chat");
-
   return (
     <ThemeProvider
       attribute="class"
       defaultTheme={"dark"}
-      enableSystem={isChatPage}
-      forcedTheme={isChatPage ? undefined : "dark"}
       disableTransitionOnChange
     >
       {children}

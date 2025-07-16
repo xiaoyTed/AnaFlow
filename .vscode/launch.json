@@ -14,7 +14,7 @@
             "cwd": "${workspaceFolder}",
             "args": [
                 "--max_step_num",
-                "3",
+                "5",
                 "--interactive"
             ]
         },
