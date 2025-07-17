@@ -6,7 +6,7 @@
 
 BASIC_MODEL:
   base_url: https://llmproxy.gwm.cn/v1
-  model: "default/deepseek-v3-0324"
+  model: "default/qwen3-235b-a22b"
   api_key: Ntie1k9gIqxcBCnIyKwpvo0mnMC/hYEwvjp5of0pri04ObPwvRXmIqWA6nthExCs9XXuYYcD0DUq
   max_tokens: 8192
 
@@ -18,7 +18,7 @@ BASIC_MODEL:
 
 REASONING_MODEL:
   base_url: https://llmproxy.gwm.cn/v1
-  model: default/deepseek-r1
+  model: default/qwen3-235b-a22b
   api_key: Ntie1k9gIqxcBCnIyKwpvo0mnMC/hYEwvjp5of0pri04ObPwvRXmIqWA6nthExCs9XXuYYcD0DUq
   max_tokens: 8192
 
