@@ -15,7 +15,8 @@
             "args": [
                 "--max_step_num",
                 "5",
-                "--interactive"
+                "--interactive",
+                "--debug"
             ]
         },
 

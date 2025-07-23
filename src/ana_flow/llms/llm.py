@@ -50,6 +50,7 @@ def _create_llm_use_conf(llm_type: LLMType, conf: Dict[str, Any]) -> ChatOpenAI:
         "reasoning": conf.get("REASONING_MODEL"),
         "basic": conf.get("BASIC_MODEL"),
         "vision": conf.get("VISION_MODEL"),
+        "start": conf.get("START_MODEL"),
     }
     llm_conf = llm_type_map.get(llm_type)
     if not llm_conf:

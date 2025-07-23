@@ -11,6 +11,14 @@ import { Card } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { useReplay } from "~/core/replay";
 import { closeResearch, listenToPodcast, useStore } from "~/core/store";
+import {
+  openResearch,
+  useLastFeedbackMessageId,
+  useLastInterruptMessage,
+  useMessage,
+  useMessageIds,
+  useResearchMessage,
+} from "~/core/store";
 import { cn } from "~/lib/utils";
 
 import { ResearchActivitiesBlock } from "./research-activities-block";
@@ -33,6 +41,11 @@ export function ResearchBlock({
   const reportStreaming = useStore((state) =>
     reportId ? (state.messages.get(reportId)?.isStreaming ?? false) : false,
   );
+  const researchStreaming = useStore((state) =>
+    researchId ? (state.messages.get(researchId)?.isStreaming ?? false) : false,
+  );
+  const interruptMessage = useLastInterruptMessage();
+  const message = useMessage(researchId);
   const { isReplay } = useReplay();
   useEffect(() => {
     if (hasReport) {
@@ -95,6 +108,10 @@ export function ResearchBlock({
     setEditing((editing) => !editing);
   }, []);
 
+  const handleAccept = useCallback(() => {
+        setEditing((editing) => !editing);
+  }, []);
+
   // When the research id changes, set the active tab to activities
   useEffect(() => {
     if (!hasReport) {
@@ -150,20 +167,46 @@ export function ResearchBlock({
                   <Download />
                 </Button>
               </Tooltip>
+              <Tooltip title="Close">
+                <Button
+                  className="text-gray-400"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    closeResearch();
+                  }}
+                >
+                  <X />
+                </Button>
+              </Tooltip>
             </>
           )}
-          <Tooltip title="Close">
-            <Button
-              className="text-gray-400"
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                closeResearch();
-              }}
-            >
-              <X />
-            </Button>
-          </Tooltip>
+          {message && !message.isStreaming && interruptMessage?.options?.length && (
+            <>
+            <Tooltip title="Accept">
+                <Button
+                  className="text-gray-400"
+                  size="icon"
+                  variant="ghost"
+                  onClick={handleAccept}
+                >
+                  <Download />
+                </Button>
+              </Tooltip>
+            <Tooltip title="Edit">
+              <Button
+                className="text-gray-400"
+                size="icon"
+                variant="ghost"
+                disabled={isReplay}
+                onClick={handleEdit}
+              >
+                {editing ? <Undo2 /> : <Pencil />}
+              </Button>
+            </Tooltip>
+            </>
+          )
+          }
         </div>
         <Tabs
           className="flex h-full w-full flex-col"

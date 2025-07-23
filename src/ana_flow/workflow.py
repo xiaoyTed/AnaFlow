@@ -72,11 +72,14 @@ async def run_agent_workflow_async(
             "max_step_num": max_step_num,
             "mcp_settings": {
                 "servers": {
-                    "mcp-github-trending": {
+                    "tavily-mcp": {
                         "transport": "stdio",
-                        "command": "uvx",
-                        "args": ["mcp-github-trending"],
-                        "enabled_tools": ["get_github_trending_repositories"],
+                        "command": "npx",
+                        "args": ["-y", "tavily-mcp@0.1.3"],
+                        "env": {
+                            "TAVILY_API_KEY": os.getenv("TAVILY_API_KEY"),
+                        },
+                        "enabled_tools": ["tavily_search_results_json"],
                         "add_to_agents": ["researcher"],
                     }
                 }
