@@ -14,7 +14,7 @@ const DEFAULT_SETTINGS: SettingsState = {
     enableBackgroundInvestigation: false,
     maxPlanIterations: 1,
     maxStepNum: 3,
-    maxSearchResults: 3,
+    maxSearchResults: 1,
     reportStyle: "academic",
   },
   mcp: {
