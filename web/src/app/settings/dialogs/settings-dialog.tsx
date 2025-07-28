@@ -21,6 +21,7 @@ import { useReplay } from "~/core/replay";
 import {
   type SettingsState,
   changeSettings,
+  loadSettings,
   saveSettings,
   useSettingsStore,
 } from "~/core/store";
@@ -34,6 +35,12 @@ export function SettingsDialog() {
   const [open, setOpen] = useState(false);
   const [settings, setSettings] = useState(useSettingsStore.getState());
   const [changes, setChanges] = useState<Partial<SettingsState>>({});
+
+  // Load settings from localStorage on component mount
+  useEffect(() => {
+    loadSettings();
+    setSettings(useSettingsStore.getState());
+  }, []);
 
   const handleTabChange = useCallback(
     (newChanges: Partial<SettingsState>) => {

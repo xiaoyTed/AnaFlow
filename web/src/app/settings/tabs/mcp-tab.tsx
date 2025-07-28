@@ -20,6 +20,10 @@ export const MCPTab: Tab = ({ settings, onChange }) => {
     settings.mcp.servers,
   );
   const [newlyAdded, setNewlyAdded] = useState(false);
+  
+  // Default server names that come pre-configured
+  const defaultServerNames = ["Web Search","Filesystem", "Browser Automation"];
+  
   const handleAddServers = useCallback(
     (servers: MCPServerMetadata[]) => {
       const merged = mergeServers(settings.mcp.servers, servers);
@@ -40,13 +44,17 @@ export const MCPTab: Tab = ({ settings, onChange }) => {
   );
   const handleDeleteServer = useCallback(
     (name: string) => {
+      // Prevent deletion of default servers
+      if (defaultServerNames.includes(name)) {
+        return;
+      }
       const merged = settings.mcp.servers.filter(
         (server) => server.name !== name,
       );
       setServers(merged);
       onChange({ ...settings, mcp: { ...settings.mcp, servers: merged } });
     },
-    [onChange, settings],
+    [onChange, settings, defaultServerNames],
   );
   const handleToggleServer = useCallback(
     (name: string, enabled: boolean) => {
@@ -76,15 +84,24 @@ export const MCPTab: Tab = ({ settings, onChange }) => {
         <div className="text-muted-foreground markdown text-sm">
           The Model Context Protocol boosts AnaFlow by integrating external
           tools for tasks like private domain searches, web browsing, food
-          ordering, and more. Click here to
+          ordering, and more. Click{" "}
           <a
             className="ml-1"
             target="_blank"
             href="https://modelcontextprotocol.io/"
           >
-            learn more about MCP.
+            here to learn more about MCP.
           </a>
         </div>
+        {servers.some(server => defaultServerNames.includes(server.name)) && (
+          <div className="bg-muted/50 text-muted-foreground rounded-lg p-3 text-sm mt-2">
+            <p>
+              <strong>Pre-configured servers:</strong> AnaFlow comes with useful MCP servers pre-configured. 
+              Web Search and Filesystem servers are enabled by default for web searches and file operations. You can enable others by 
+              toggling them on, or add your own custom servers.
+            </p>
+          </div>
+        )}
       </header>
       <main>
         <ul id="mcp-servers-list" className="flex flex-col gap-4">
@@ -92,6 +109,7 @@ export const MCPTab: Tab = ({ settings, onChange }) => {
             const isNew =
               server.createdAt &&
               server.createdAt > Date.now() - 1000 * 60 * 60 * 1;
+            const isDefault = defaultServerNames.includes(server.name);
             return (
               <motion.li
                 className={
@@ -114,15 +132,17 @@ export const MCPTab: Tab = ({ settings, onChange }) => {
                   </Tooltip>
                 </div>
                 <div className="absolute top-1 right-12 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                  <Tooltip title="Delete server">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDeleteServer(server.name)}
-                    >
-                      <Trash />
-                    </Button>
-                  </Tooltip>
+                  {!isDefault && (
+                    <Tooltip title="Delete server">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteServer(server.name)}
+                      >
+                        <Trash />
+                      </Button>
+                    </Tooltip>
+                  )}
                 </div>
                 <div
                   className={cn(
@@ -148,6 +168,11 @@ export const MCPTab: Tab = ({ settings, onChange }) => {
                     {isNew && (
                       <div className="bg-primary text-primary-foreground h-fit rounded px-1.5 py-0.5 text-xs">
                         New
+                      </div>
+                    )}
+                    {isDefault && (
+                      <div className="bg-primary text-primary-foreground h-fit rounded px-1.5 py-0.5 text-xs">
+                        Default
                       </div>
                     )}
                   </div>

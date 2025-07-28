@@ -11,17 +11,17 @@ START_MODEL:
   api_key: Ntie1k9gIqxcBCnIyKwpvo0mnMC/hYEwvjp5of0pri04ObPwvRXmIqWA6nthExCs9XXuYYcD0DUq
   max_tokens: 8192
 
-# BASIC_MODEL:
-#   base_url: https://llmproxy.gwm.cn/v1
-#   model: "default/deepseek-r1"
-#   api_key: Ntie1k9gIqxcBCnIyKwpvo0mnMC/hYEwvjp5of0pri04ObPwvRXmIqWA6nthExCs9XXuYYcD0DUq
-#   max_tokens: 8192
-
 BASIC_MODEL:
-  base_url: https://api.deepseek.com
-  model: "deepseek-chat"
-  api_key: sk-1328bc4f0077467680a1f22ce7764ae3
+  base_url: https://llmproxy.gwm.cn/v1
+  model: "default/qwen3-235b-a22b"
+  api_key: Ntie1k9gIqxcBCnIyKwpvo0mnMC/hYEwvjp5of0pri04ObPwvRXmIqWA6nthExCs9XXuYYcD0DUq
   max_tokens: 8192
+
+# BASIC_MODEL:
+#   base_url: https://api.deepseek.com
+#   model: "deepseek-chat"
+#   api_key: sk-1328bc4f0077467680a1f22ce7764ae3
+#   max_tokens: 8192
 
 REASONING_MODEL:
   base_url: https://llmproxy.gwm.cn/v1
