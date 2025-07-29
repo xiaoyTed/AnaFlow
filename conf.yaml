@@ -4,10 +4,23 @@
 # - Replace `base_url` and `model` name if you want to use a custom model
 #ogZZt7D8OrKh8jW2L66icLqLR20c5RdJaM54Tjb65b9FL76swiU0Eu2BUvdhr0aKZY5nKdzlXoZu
 
+#235b性能太差，需要区分哪些场景使用哪些模型
+START_MODEL:
+  base_url: https://llmproxy.gwm.cn/v1
+  model: "default/qwen3-32b"
+  api_key: Ntie1k9gIqxcBCnIyKwpvo0mnMC/hYEwvjp5of0pri04ObPwvRXmIqWA6nthExCs9XXuYYcD0DUq
+  max_tokens: 8192
+
+BASIC_MODEL:
+  base_url: https://llmproxy.gwm.cn/v1
+  model: "default/qwen3-235b-a22b"
+  api_key: Ntie1k9gIqxcBCnIyKwpvo0mnMC/hYEwvjp5of0pri04ObPwvRXmIqWA6nthExCs9XXuYYcD0DUq
+  max_tokens: 8192
+
 # BASIC_MODEL:
-#   base_url: https://llmproxy.gwm.cn/v1
-#   model: "default/qwen3-235b-a22b"
-#   api_key: Ntie1k9gIqxcBCnIyKwpvo0mnMC/hYEwvjp5of0pri04ObPwvRXmIqWA6nthExCs9XXuYYcD0DUq
+#   base_url: https://api.deepseek.com
+#   model: "deepseek-chat"
+#   api_key: sk-1328bc4f0077467680a1f22ce7764ae3
 #   max_tokens: 8192
 
 BASIC_MODEL:

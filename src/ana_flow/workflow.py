@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from ana_flow.graph import build_graph
+from langchain.globals import set_debug
 
 # Configure logging
 logging.basicConfig(
@@ -25,6 +26,7 @@ logging.getLogger().addHandler(file_handler)
 def enable_debug_logging():
     """Enable debug level logging for more detailed execution information."""
     logging.getLogger("src").setLevel(logging.DEBUG)
+    # set_debug(True)  # Enable langchain debug mode
 
 
 logger = logging.getLogger(__name__)
@@ -72,11 +74,14 @@ async def run_agent_workflow_async(
             "max_step_num": max_step_num,
             "mcp_settings": {
                 "servers": {
-                    "mcp-github-trending": {
+                    "tavily-mcp": {
                         "transport": "stdio",
-                        "command": "uvx",
-                        "args": ["mcp-github-trending"],
-                        "enabled_tools": ["get_github_trending_repositories"],
+                        "command": "npx",
+                        "args": ["-y", "tavily-mcp@0.1.3"],
+                        "env": {
+                            "TAVILY_API_KEY": os.getenv("TAVILY_API_KEY"),
+                        },
+                        "enabled_tools": ["tavily_search_results_json"],
                         "add_to_agents": ["researcher"],
                     }
                 }

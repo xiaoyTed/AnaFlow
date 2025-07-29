@@ -167,7 +167,7 @@ export const GeneralTab: Tab = ({
                     />
                   </FormControl>
                   <FormDescription>
-                    By default, each search step has 3 results.
+                    By default, each search step has 1 results.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

@@ -3,8 +3,9 @@
 
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
+import { loadSettings } from "~/core/store";
 import { useStore } from "~/core/store";
 import { cn } from "~/lib/utils";
 
@@ -17,6 +18,12 @@ export default function Main() {
     () => openResearchId !== null,
     [openResearchId],
   );
+
+  // Load settings from localStorage when the app starts
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
   return (
     <div
       className={cn(

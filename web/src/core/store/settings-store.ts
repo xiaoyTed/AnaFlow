@@ -7,6 +7,106 @@ import type { MCPServerMetadata, SimpleMCPServerMetadata } from "../mcp";
 
 const SETTINGS_KEY = "anaFlow.settings";
 
+/**
+ * Default MCP servers that come pre-configured with AnaFlow.
+ * These provide commonly useful functionality out of the box:
+ * 
+ * - Web Search: Enabled by default for web searches using Tavily API
+ * - Filesystem: Enabled by default for file operations (read, write, search, etc.)
+ * - Browser Automation: Disabled by default, provides Playwright-based web automation
+ * 
+ * Users can enable/disable these servers and add their own custom servers.
+ * Default servers cannot be deleted but can be disabled.
+ */
+const getDefaultMCPServers = (): MCPServerMetadata[] => {
+  const now = Date.now();
+  return [
+    {
+      name: "Web Search",
+      transport: "stdio", 
+      command: "npx",
+      args: ["-y", "tavily-mcp@0.1.3"],
+      enabled: true,
+      env: {
+        TA_API_KEY: "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",
+      },
+      tools: [
+        {
+          name: "tavily_search_results_json",
+          description: "Search the web using Tavily Search API",
+        },
+      ],
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      name: "Filesystem",
+      transport: "stdio",
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-filesystem", "./local_data"],
+      enabled: true,
+      env: {},
+      tools: [
+        {
+          name: "read_file",
+          description: "Read the complete contents of a file from the file system",
+        },
+        {
+          name: "write_file", 
+          description: "Create a new file or overwrite an existing file with new content",
+        },
+        {
+          name: "list_directory",
+          description: "Get a detailed listing of all files and directories in a specified path",
+        },
+        {
+          name: "create_directory",
+          description: "Create a new directory or ensure a directory exists",
+        },
+        {
+          name: "search_files",
+          description: "Recursively search for files and directories matching a pattern",
+        },
+        {
+          name: "get_file_info",
+          description: "Retrieve detailed metadata about a file or directory",
+        },
+      ],
+      createdAt: now,
+      updatedAt: now,
+    },
+
+    {
+      name: "Browser Automation",
+      transport: "stdio",
+      command: "npx", 
+      args: ["-y", "@modelcontextprotocol/server-playwright"],
+      enabled: false,
+      env: {},
+      tools: [
+        {
+          name: "playwright_screenshot",
+          description: "Take a screenshot of a webpage",
+        },
+        {
+          name: "playwright_click",
+          description: "Click on an element on a webpage",
+        },
+        {
+          name: "playwright_fill",
+          description: "Fill a form field on a webpage",
+        },
+        {
+          name: "playwright_navigate",
+          description: "Navigate to a specific URL",
+        },
+      ],
+      createdAt: now,
+      updatedAt: now,
+    },
+  ];
+};
+
 const DEFAULT_SETTINGS: SettingsState = {
   general: {
     autoAcceptedPlan: false,
@@ -18,7 +118,7 @@ const DEFAULT_SETTINGS: SettingsState = {
     reportStyle: "academic",
   },
   mcp: {
-    servers: [],
+    servers: getDefaultMCPServers(),
   },
 };
 
@@ -56,6 +156,8 @@ export const loadSettings = () => {
   const json = localStorage.getItem(SETTINGS_KEY);
   if (json) {
     const settings = JSON.parse(json);
+    
+    // Merge missing general settings
     for (const key in DEFAULT_SETTINGS.general) {
       if (!(key in settings.general)) {
         settings.general[key as keyof SettingsState["general"]] =
@@ -63,11 +165,29 @@ export const loadSettings = () => {
       }
     }
 
+    // Merge default MCP servers if they don't exist
+    settings.mcp ??= { servers: [] };
+    
+    const existingServerNames = settings.mcp.servers.map((server: MCPServerMetadata) => server.name);
+    const defaultServersToAdd = getDefaultMCPServers().filter(
+      (defaultServer) => !existingServerNames.includes(defaultServer.name)
+    );
+    
+    if (defaultServersToAdd.length > 0) {
+      settings.mcp.servers = [...defaultServersToAdd, ...settings.mcp.servers];
+    }
+
     try {
       useSettingsStore.setState(settings);
+      // Save the updated settings back to localStorage
+      saveSettings();
     } catch (error) {
       console.error(error);
     }
+  } else {
+    // If no settings exist, use the defaults
+    useSettingsStore.setState(DEFAULT_SETTINGS);
+    saveSettings();
   }
 };
 

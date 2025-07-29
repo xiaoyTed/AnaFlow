@@ -5,6 +5,7 @@ import json
 import logging
 import os
 from typing import Annotated, Literal
+import time
 
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
@@ -174,27 +175,28 @@ def human_feedback_node(
     state,
 ) -> Command[Literal["planner", "research_team", "reporter", "__end__"]]:
     current_plan = state.get("current_plan", "")
-    # check if the plan is auto accepted
-    auto_accepted_plan = state.get("auto_accepted_plan", False)
-    if not auto_accepted_plan:
-        feedback = interrupt("Please Review the Market Analysis Plan.")
+    
+    # Write plan to file for user review
+    try:
+        with open("plan_review.txt", "w", encoding="utf-8") as f:
+            f.write(current_plan)
+    except Exception as e:
+        logger.error(f"Error writing plan to file: {e}")
+        return Command(goto="research_team")
 
-        # if the feedback is not accepted, return the planner node
-        if feedback and str(feedback).upper().startswith("[EDIT_PLAN]"):
-            return Command(
-                update={
-                    "messages": [
-                        HumanMessage(content=feedback, name="feedback"),
-                    ],
-                },
-                goto="planner",
-            )
-        elif feedback and str(feedback).upper().startswith("[ACCEPTED]"):
-            logger.info("Market analysis plan is accepted by user.")
-        else:
-            raise TypeError(f"Interrupt value of {feedback} is not supported.")
+    logger.info("Plan written to plan_review.txt for review")
+    
+    # Check if file was modified
+    if os.path.exists("plan_review.txt"):
+        # User edited the file
+        with open("plan_review.txt", "r") as f:
+            feedback = f.read()
 
-    # if the plan is accepted, run the following node
+    logger.info("Plan accepted by user")
+
+    # Update current plan based on user feedback
+    if feedback :
+        current_plan = feedback
     plan_iterations = state["plan_iterations"] if state.get("plan_iterations", 0) else 0
     goto = "research_team"
     try:
@@ -207,10 +209,7 @@ def human_feedback_node(
             goto = "reporter"
     except json.JSONDecodeError:
         logger.warning("Planner response is not a valid JSON")
-        if plan_iterations > 0:
-            return Command(goto="reporter")
-        else:
-            return Command(goto="__end__")
+        return Command(goto="__end__")
 
     return Command(
         update={
@@ -240,9 +239,9 @@ def coordinator_node(
 
     if len(response.tool_calls) > 0:
         goto = "planner"
-        if state.get("enable_background_investigation"):
-            # if the search_before_planning is True, add the web search tool to the planner agent
-            goto = "background_investigator"
+        # if state.get("enable_background_investigation"):
+        #     # if the search_before_planning is True, add the web search tool to the planner agent
+        #     goto = "background_investigator"
         try:
             for tool_call in response.tool_calls:
                 if tool_call.get("name", "") != "handoff_to_planner":
@@ -334,9 +333,34 @@ def human_edit_node(
 ) -> Command[Literal["research_team"]]:
     """Human edit node that simulates human review/edit before research step."""
     logger.info("Human edit node: waiting for human input before passing to researcher node.")
-    # feedback = interrupt("Please review or edit the research task before continuing.")
-    # Optionally, you could process feedback here or just continue
-    return Command(goto="research_team")
+
+    try:
+        # Save state content to json file
+        with open("state.txt", "w") as f:
+            observations = state.get("observations", [])
+            for observation in observations:
+                f.write(observation)
+                f.write("\n\n")
+        logger.info("State written to state.txt for review")
+    except:
+        logger.error("Error writing state to file")
+        return Command(goto="research_team")
+
+    with open("state.txt", "r") as f:
+        feedback = f.read()
+    
+    # Update state with the edited observation
+    if feedback:
+        # Add the edited feedback as a new observation
+        updated_observations = [feedback]
+    else:
+        updated_observations = observations
+    
+    return Command(
+        update={"observations": updated_observations}, 
+        goto="research_team"
+    )
+
 
 
 async def _execute_agent_step(
@@ -411,10 +435,14 @@ async def _execute_agent_step(
         )
         recursion_limit = default_recursion_limit
 
-    result = await agent.ainvoke(
-        input=agent_input, config={"recursion_limit": recursion_limit}
-    )
-    logger.debug(f"Current state messages: {state['messages']}")
+    try:
+        result = await agent.ainvoke(
+            input=agent_input, config={"recursion_limit": recursion_limit}
+        )
+        logger.debug(f"Current state messages: {state['messages']}")
+    except Exception as e:
+        logger.error(f"Error invoking agent: {e}")
+        # return Command(goto="research_team")
 
     # Process the result
     response_content = result["messages"][-1].content
@@ -425,7 +453,14 @@ async def _execute_agent_step(
     logger.info(f"Step '{current_step.title}' execution completed by {agent_name}")
 
     if agent_name == "researcher":
-        return Command(goto="human_edit")
+        return Command(
+            update={
+                "messages": [
+                    HumanMessage(content=response_content, name=agent_name),
+                ],
+                "observations": observations + [response_content],
+            },
+            goto="human_edit")
 
     return Command(
         update={
@@ -443,9 +478,9 @@ async def _execute_agent_step(
 
 async def _setup_and_execute_agent_step(
     state: State,
-    config: RunnableConfig,
     agent_type: str,
     default_tools: list,
+    config: RunnableConfig = None,
 ) -> Command[Literal["research_team"]]:
     """Helper function to set up an agent with appropriate tools and execute a step.
 
@@ -456,20 +491,18 @@ async def _setup_and_execute_agent_step(
 
     Args:
         state: The current state
-        config: The runnable config
         agent_type: The type of agent ("researcher" or "coder")
         default_tools: The default tools to add to the agent
+        config: The runnable config
 
     Returns:
         Command to update state and go to research_team
     """
-    configurable = Configuration.from_runnable_config(config)
     mcp_servers = {}
-    enabled_tools = {}
 
     # Extract MCP server configuration for this agent type
-    if configurable.mcp_settings:
-        for server_name, server_config in configurable.mcp_settings["servers"].items():
+    if config is not None:
+        for server_name, server_config in config.mcp_settings["servers"].items():
             if (
                 server_config["enabled_tools"]
                 and agent_type in server_config["add_to_agents"]
@@ -479,8 +512,7 @@ async def _setup_and_execute_agent_step(
                     for k, v in server_config.items()
                     if k in ("transport", "command", "args", "url", "env")
                 }
-                for tool_name in server_config["enabled_tools"]:
-                    enabled_tools[tool_name] = server_name
+
 
     # Create and execute agent with MCP tools if available
     if mcp_servers:
@@ -489,11 +521,7 @@ async def _setup_and_execute_agent_step(
         try:
             mcp_tools = await client.get_tools()
             for tool in mcp_tools:
-                if tool.name in enabled_tools:
-                    tool.description = (
-                        f"Powered by '{enabled_tools[tool.name]}'.\n{tool.description}"
-                    )
-                    loaded_tools.append(tool)
+                loaded_tools.append(tool)
         finally:
             # Assuming MultiServerMCPClient might have an aclose method for cleanup,
             # similar to other Langchain clients. If not, this can be removed.
@@ -517,12 +545,12 @@ async def researcher_node(
 ) -> Command[Literal["research_team"]]:
     """Researcher node that do research"""
     logger.info("Researcher node is researching.")
-    configurable = Configuration.from_runnable_config(config)
+    configurable = Configuration.from_runnable_config(config)       
     return await _setup_and_execute_agent_step(
         state,
-        config,
         "researcher",
-        [get_web_search_tool(configurable.max_search_results), crawl_tool, csv_loader_tool],
+        [],
+        config=configurable,
     )
 
 
@@ -532,7 +560,6 @@ async def coder_node(
     """Coder node that do code analysis."""
     return await _setup_and_execute_agent_step(
         state,
-        config,
         "coder",
         [python_repl_tool, csv_loader_tool],
     )
@@ -544,7 +571,6 @@ async def loader_node(
     """Loader node that handles loading and processing local data files."""
     return await _setup_and_execute_agent_step(
         state,
-        config,
         "loader",
         [csv_loader_tool, python_repl_tool],
     )
