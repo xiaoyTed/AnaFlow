@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from ana_flow.graph import build_graph
+from langchain.globals import set_debug
 
 # Configure logging
 logging.basicConfig(
@@ -25,6 +26,7 @@ logging.getLogger().addHandler(file_handler)
 def enable_debug_logging():
     """Enable debug level logging for more detailed execution information."""
     logging.getLogger("src").setLevel(logging.DEBUG)
+    # set_debug(True)  # Enable langchain debug mode
 
 
 logger = logging.getLogger(__name__)

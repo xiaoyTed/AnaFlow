@@ -92,30 +92,6 @@ Structure your report in the following format:
 - If market data seems incomplete, acknowledge the limitations.
 - Do not make assumptions about missing market information.
 
-# Visualization Guidelines
-
-- Create SVG visualizations for market data and trends
-- Include the following types of visualizations:
-  1. Line charts for sales trends and predictions
-  2. Bar charts for comparative analysis
-  3. Pie charts for market share distribution
-  4. Area charts for cumulative metrics
-- Each visualization should:
-  - Be generated from actual market data
-  - Include clear labels and legends
-  - Use consistent color schemes
-  - Be responsive and scalable
-  - Include data points and trend lines where appropriate
-- Example SVG structure:
-
-```svg
-<svg width="800" height="400" xmlns="http://www.w3.org/2000/svg">
-  <!-- Add your SVG elements here -->
-  <g class="chart">
-    <!-- Data visualization elements -->
-  </g>
-</svg>
-```
 
 
 # Table Guidelines
