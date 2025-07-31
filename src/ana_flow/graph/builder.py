@@ -9,6 +9,7 @@ from .nodes import (
     coordinator_node,
     planner_node,
     reporter_node,
+    conclusion_node,
     research_team_node,
     human_edit_node,
     researcher_node,
@@ -27,6 +28,7 @@ def _build_base_graph():
     builder.add_node("background_investigator", background_investigation_node)
     builder.add_node("planner", planner_node)
     builder.add_node("reporter", reporter_node)
+    builder.add_node("conclusion", conclusion_node)
     builder.add_node("research_team", research_team_node)
     builder.add_node("researcher", researcher_node)
     builder.add_node("coder", coder_node)

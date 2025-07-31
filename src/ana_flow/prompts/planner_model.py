@@ -11,6 +11,7 @@ class StepType(str, Enum):
     RESEARCH = "research"
     PROCESSING = "processing"
     LOADING = "loading"
+    PREDICTION = "prediction"
 
 
 class Step(BaseModel):
@@ -70,7 +71,15 @@ class Plan(BaseModel):
                                 "Process the collected data to derive key insights about market trends and patterns."
                             ),
                             "step_type": "processing",
-                        }
+                        },
+                        {
+                            "need_web_search": False,
+                            "title": "Conclusion and Summary",
+                            "description": (
+                                "Synthesize all findings into a comprehensive conclusion with key insights, recommendations, and actionable outcomes."
+                            ),
+                            "step_type": "conclusion",
+                        },
                     ],
                 }
             ]

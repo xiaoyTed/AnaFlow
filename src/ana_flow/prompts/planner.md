@@ -59,7 +59,7 @@ Different types of steps have different web search requirements:
    - load file from local file path, "./local_data"
    - read human messages, contain human target vehical brand in description
 
-2. **Research Steps** (`need_web_search: true`):
+2. **Research Steps** (`need_web_search: true`,  `step_type: rearch`):
    - Gathering market data and industry trends
    - Finding historical sales information
    - Collecting competitor analysis
@@ -70,8 +70,19 @@ Different types of steps have different web search requirements:
    - Sales data analysis and forecasting
    - Market trend calculations
    - Statistical computations and data processing
-   - Model development and validation
    - Performance metrics calculation
+
+4. **Model Development Steps** (`need_web_search: false`,`step_type: processing`):
+   - Sales prediction model development and validation
+   - Machine learning model training and testing
+   - Model performance evaluation and optimization
+   - Generating initial sales predictions based on model output
+
+5. **Final Prediction Steps** (`need_web_search: false`, `step_type: prediction`):
+   - Taking the model's sales predictions as baseline
+   - Analyzing all collected text information and market insights
+   - Adjusting predictions based on qualitative factors and market context
+   - Producing final comprehensive sales forecast with confidence intervals
 
 ## Analysis Framework
 
@@ -86,11 +97,13 @@ When planning information gathering, consider these key aspects and ensure COMPR
    - What current market metrics need to be collected?
    - What is the present market landscape in detail?
    - What are the most recent market developments?
+   - What are the current pricing trends and sales price distributions?
 
 3. **Future Market Indicators**:
    - What predictive data or future-oriented information is required?
    - What are all relevant market forecasts and projections?
    - What potential future market scenarios should be considered?
+   - How might pricing strategies and sales prices evolve in the future?
 
 4. **Stakeholder Analysis**:
    - What information about ALL relevant market stakeholders is needed?
@@ -101,6 +114,7 @@ When planning information gathering, consider these key aspects and ensure COMPR
    - What comprehensive sales numbers, statistics, and metrics should be gathered?
    - What numerical data is needed from multiple market sources?
    - What statistical analyses are relevant to market prediction?
+   - What detailed sales price data, pricing models, and price-performance relationships are needed?
 
 6. **Qualitative Market Insights**:
    - What non-numerical market information needs to be collected?
@@ -111,11 +125,20 @@ When planning information gathering, consider these key aspects and ensure COMPR
    - What comparison points or benchmark data are required?
    - What similar market cases or alternatives should be examined?
    - How does this compare across different market segments?
+   - How do sales prices compare across different brands, models, and market segments?
 
 8. **Market Risk Assessment**:
    - What information about ALL potential market risks should be gathered?
    - What are the market challenges, limitations, and obstacles?
    - What market contingencies and mitigations exist?
+   - How do pricing fluctuations and sales price volatility affect market predictions?
+
+9. **Pricing Analysis**:
+   - What comprehensive sales price data across different vehicle segments is required?
+   - How do pricing strategies affect consumer purchasing decisions and market demand?
+   - What price elasticity and sensitivity factors influence sales volumes?
+   - How do sales prices correlate with market performance and consumer preferences?
+   - What impact do economic factors have on pricing and sales price acceptance?
 
 ## Step Constraints
 
@@ -139,6 +162,9 @@ When planning information gathering, consider these key aspects and ensure COMPR
     - For each step, carefully assess if web search is needed:
         - Market research and external data gathering: Set `need_web_search: true`
         - Internal market data processing: Set `need_web_search: false`
+        - Model development: Set `need_web_search: false`
+- **MANDATORY**: The second-to-last step MUST always be Sales Prediction Model Development (销量预测模型开发) with `need_web_search: false`.
+- **MANDATORY**: The final step MUST always be Final Sales Prediction (最终销量预测) and `need_web_search: false`. This step should use the model's predictions as baseline and adjust them based on all collected text information and market insights.
 - Specify the exact market data to be collected in step's `description`. Include a `note` if necessary.
 - Prioritize depth and volume of relevant market information - limited information is not acceptable.
 - Use the same language as the user to generate the plan.
@@ -153,7 +179,7 @@ interface Step {
   need_web_search: boolean;  // Must be explicitly set for each step
   title: string;
   description: string;  // Specify exactly what market data to collect
-  step_type: "research" | "processing";  // Indicates the nature of the step
+  step_type: "research" | "processing" | "loading" | "prediction";  // Indicates the nature of the step
 }
 
 interface Plan {
@@ -163,11 +189,14 @@ interface Plan {
   title: string;
   steps: Step[];  // Research & Processing steps to get more context
 }
-```
+``
 
 # Notes
 
 - always contain load local data step as the first step.
+- always consider collecting comprehensive sales price data and doing analysis of the vehicles specified by users as the second step, including price trends, competitive pricing, price-performance ratios, and pricing impact on market demand.
+- **MANDATORY**: The second-to-last step of every execution plan MUST be Sales Prediction Model Development (销量预测模型开发) with `need_web_search: false`.
+- **MANDATORY**: The final step of every execution plan MUST be Final Sales Prediction (最终销量预测) with `need_web_search: false` and `step_type: prediction`. This step should use the model's predictions as baseline and adjust them based on all collected text information and market insights.
 - Focus on market information gathering in research steps - delegate all calculations to processing steps
 - Ensure each step has a clear, specific market data point or information to collect
 - Create a comprehensive market data collection plan that covers the most critical aspects within {{ max_step_num }} steps
@@ -175,7 +204,9 @@ interface Plan {
 - Never settle for minimal market information - the goal is a comprehensive, detailed final report
 - Limited or insufficient market information will lead to an inadequate final report
 - Carefully assess each step's web search requirement based on its nature:
-    - Research steps (`need_web_search: true`) for gathering market information
-    - Processing steps (`need_web_search: false`) for market calculations and data processing
+    - Research steps (`need_web_search: true`, `step_type: research`) for gathering market information
+    - Processing steps (`need_web_search: false`, `step_type: processing`) for market calculations and data processing
+    - Model development steps (`need_web_search: false`, `step_type: processing`) for developing sales prediction models
+    - Final prediction steps (`need_web_search: false`, `step_type: prediction`) for making final sales forecasts
 - Default to gathering more market information unless the strictest sufficient context criteria are met
 - Always use the language specified by the locale = **{{ locale }}**.

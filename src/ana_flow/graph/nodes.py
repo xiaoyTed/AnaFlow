@@ -191,6 +191,7 @@ def human_feedback_node(
         # User edited the file
         with open("plan_review.txt", "r") as f:
             feedback = f.read()
+        os.remove("plan_review.txt")
 
     logger.info("Plan accepted by user")
 
@@ -325,6 +326,8 @@ def research_team_node(
         return Command(goto="loader")
     if step.step_type and step.step_type == StepType.PROCESSING:
         return Command(goto="coder")
+    if step.step_type and step.step_type == StepType.PREDICTION:
+        return Command(goto="conclusion")
     return Command(goto="planner")
 
 
@@ -348,6 +351,7 @@ def human_edit_node(
 
     with open("state.txt", "r") as f:
         feedback = f.read()
+    os.remove("state.txt")
     
     # Update state with the edited observation
     if feedback:
@@ -573,4 +577,56 @@ async def loader_node(
         state,
         "loader",
         [csv_loader_tool, python_repl_tool],
+    )
+
+def conclusion_node(state: State) -> Command[Literal["research_team"]]:
+    """Conclusion node that makes final predictions based on model results and adjusts them according to text information."""
+    logger.info("Conclusion node making final predictions")
+    current_plan = state.get("current_plan")
+    observations = state.get("observations", [])
+    
+    # Prepare input for the conclusion node
+    input_ = {
+        "messages": [
+            HumanMessage(
+                f"# Research Requirements\n\n## Task\n\n{current_plan.title}\n\n## Description\n\n{current_plan.thought}"
+            )
+        ],
+        "locale": state.get("locale", "en-US"),
+    }
+    invoke_messages = apply_prompt_template("conclusion", input_)
+    
+    # Add all observations as context for the conclusion
+    for observation in observations:
+        invoke_messages.append(
+            HumanMessage(
+                content=f"Below are some observations for the research task:\n\n{observation}",
+                name="observation",
+            )
+        )
+    
+    # Add specific instruction for conclusion node
+    invoke_messages.append(
+        HumanMessage(
+            content="IMPORTANT: You are the final conclusion node. Your task is to:\n\n1. Review all the prediction model results from previous steps\n2. Analyze all the text information and market insights gathered\n3. Make final sales predictions by adjusting the model predictions based on qualitative factors\n4. Provide a comprehensive conclusion that combines quantitative model outputs with qualitative market analysis\n5. Include confidence levels and reasoning for your final predictions\n6. Focus on actionable insights and clear recommendations\n\nDo NOT perform any web research or code execution. Base your conclusions ONLY on the provided information.",
+            name="system",
+        )
+    )
+    
+    logger.debug(f"Current invoke messages: {invoke_messages}")
+    response = get_llm_by_type(AGENT_LLM_MAP["conclusion"]).invoke(invoke_messages)
+    response_content = response.content
+    logger.info(f"conclusion response: {response_content}")
+
+    #updata execution_res
+    current_plan.steps[-1].execution_res = response_content
+
+    return Command(
+        update={
+            "messages": [
+                HumanMessage(content=response_content, name="conclusion"),
+            ],
+            "observations": observations + [response_content],
+        },
+        goto="research_team",
     )
