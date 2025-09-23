@@ -7,6 +7,14 @@
 
 export PYTHONPATH=src
 nohup uvicorn ana_flow.server.app:app --host 0.0.0.0 --port 8000 >>info.log &
+
+# Copy static assets to standalone directory
+cp -r web/.next/static web/.next/standalone/.next/
+
 cd web/.next/standalone
 pm2 start server.js --name "ana_flow_web"
+
+cd web/.next/standalone
+nohup node server.js >>info.log &
+exit #这一步是必须得
 

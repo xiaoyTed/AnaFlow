@@ -64,6 +64,8 @@ def _create_llm_use_conf(llm_type: LLMType, conf: Dict[str, Any]) -> ChatOpenAI:
         return OllamaLLM(**llm_conf)
     elif llm_provider["provider"] == "openai":
         return ChatOpenAI(**llm_conf)
+    elif llm_provider["provider"] == "deepseek":
+        return ChatDeepSeek(**llm_conf)
 
 
 def get_llm_by_type(

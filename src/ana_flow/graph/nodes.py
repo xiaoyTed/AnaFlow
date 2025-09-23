@@ -123,8 +123,10 @@ def planner_node(
         full_response = response.model_dump_json(indent=4, exclude_none=True)
     else:
         response = llm.stream(messages)
+        #print the response for debugging
         for chunk in response:
             full_response += chunk.content
+            print(chunk.content)
 
     try:
         curr_plan = json.loads(repair_json_output(full_response))
