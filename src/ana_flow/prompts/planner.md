@@ -53,7 +53,7 @@ Before creating a detailed plan, assess if there is sufficient context to answer
 
 ## Step Types and Web Search
 
-Different types of steps have different web search requirements:
+Different types of steps have different web search and step type requirements:
 
 1. **Data loading Step**(`need_web_seach: false`, `step_type: loading`):
    - load file from local file path, "./local_data"
@@ -66,19 +66,13 @@ Different types of steps have different web search requirements:
    - Researching current market events or news
    - Finding statistical data or industry reports
 
-3. **Data Processing Steps** (`need_web_search: false`):
-   - Sales data analysis and forecasting
-   - Market trend calculations
-   - Statistical computations and data processing
-   - Performance metrics calculation
-
-4. **Model Development Steps** (`need_web_search: false`,`step_type: processing`):
+2. **Model Development Steps** (`need_web_search: false`,`step_type: processing`):
    - Sales prediction model development and validation
    - Machine learning model training and testing
    - Model performance evaluation and optimization
    - Generating initial sales predictions based on model output
 
-5. **Final Prediction Steps** (`need_web_search: false`, `step_type: prediction`):
+3. **Final Prediction Steps** (`need_web_search: false`, `step_type: prediction`):
    - Taking the model's sales predictions as baseline
    - Analyzing all collected text information and market insights
    - Adjusting predictions based on qualitative factors and market context
@@ -197,7 +191,6 @@ interface Plan {
 - always consider collecting comprehensive sales price data and doing analysis of the vehicles specified by users as the second step, including price trends, competitive pricing, price-performance ratios, and pricing impact on market demand.
 - **MANDATORY**: The second-to-last step of every execution plan MUST be Sales Prediction Model Development (销量预测模型开发) with `need_web_search: false`.
 - **MANDATORY**: The final step of every execution plan MUST be Final Sales Prediction (最终销量预测) with `need_web_search: false` and `step_type: prediction`. This step should use the model's predictions as baseline and adjust them based on all collected text information and market insights.
-- Focus on market information gathering in research steps - delegate all calculations to processing steps
 - Ensure each step has a clear, specific market data point or information to collect
 - Create a comprehensive market data collection plan that covers the most critical aspects within {{ max_step_num }} steps
 - Prioritize BOTH breadth (covering essential market aspects) AND depth (detailed information on each aspect)
@@ -205,7 +198,6 @@ interface Plan {
 - Limited or insufficient market information will lead to an inadequate final report
 - Carefully assess each step's web search requirement based on its nature:
     - Research steps (`need_web_search: true`, `step_type: research`) for gathering market information
-    - Processing steps (`need_web_search: false`, `step_type: processing`) for market calculations and data processing
     - Model development steps (`need_web_search: false`, `step_type: processing`) for developing sales prediction models
     - Final prediction steps (`need_web_search: false`, `step_type: prediction`) for making final sales forecasts
 - Default to gathering more market information unless the strictest sufficient context criteria are met
