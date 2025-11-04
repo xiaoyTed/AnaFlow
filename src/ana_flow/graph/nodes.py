@@ -6,6 +6,7 @@ import logging
 import os
 from typing import Annotated, Literal
 import time
+import pandas as pd
 
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
@@ -13,7 +14,7 @@ from langchain_core.tools import tool
 from langgraph.types import Command, interrupt
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
-from ana_flow.agents import create_agent
+from langgraph.prebuilt import create_react_agent
 from ana_flow.tools.search import LoggedTavilySearch
 from ana_flow.tools import (
     crawl_tool,
@@ -26,11 +27,18 @@ from ana_flow.config.agents import AGENT_LLM_MAP
 from ana_flow.config.configuration import Configuration
 from ana_flow.llms.llm import get_llm_by_type
 from ana_flow.prompts.planner_model import Plan, StepType
+from ana_flow.prompts.loader_model import LoaderOutput
 from ana_flow.prompts.template import apply_prompt_template
 from ana_flow.utils.json_utils import repair_json_output
 
 from ana_flow.graph.types import State
 from ana_flow.config import SELECTED_SEARCH_ENGINE, SearchEngine
+
+from dotenv import load_dotenv
+#load env variable
+load_dotenv()
+PG_USER_NAME = os.getenv("PG_USER_NAME")
+PG_PASSWORD = os.getenv("PG_PASSWORD")
 
 logger = logging.getLogger(__name__)
 
@@ -130,20 +138,6 @@ def planner_node(
 
     try:
         curr_plan = json.loads(repair_json_output(full_response))
-        
-        # Inject CSV analysis step as the first step if plan has steps
-        # if curr_plan.get("steps") and len(curr_plan["steps"]) > 0:
-        #     csv_analysis_step = {
-        #         "need_web_search": False,
-        #         "title": "Local CSV Data Analysis",
-        #         "description": "Load and analyze local CSV files from the ./local_data directory to understand the available data structure, key metrics, and insights that can inform the research.",
-        #         "step_type": "loading"
-        #     }
-        #     # Insert CSV analysis as the first step
-        #     curr_plan["steps"].insert(0, csv_analysis_step)
-        #     logger.info("Added CSV analysis step as the first step in the plan")
-
-        
     except json.JSONDecodeError:
         logger.warning("Planner response is not a valid JSON")
         if plan_iterations > 0:
@@ -368,56 +362,305 @@ def human_edit_node(
     )
 
 
+async def researcher_node(
+    state: State, config: RunnableConfig
+) -> Command[Literal["research_team"]]:
+    """Researcher node that do research"""
+    logger.info("Researcher node is researching.")
 
-async def _execute_agent_step(
-    state: State, agent, agent_name: str
-) -> Command[Literal["research_team", "human_edit"]]:
-    """Helper function to execute a step using the specified agent."""
+    agent_type = "researcher"
+
     current_plan = state.get("current_plan")
     observations = state.get("observations", [])
+    language = state.get("locale", "zh-CN")
 
-    # Find the first unexecuted step
-    current_step = None
-    completed_steps = []
-    for step in current_plan.steps:
-        if not step.execution_res:
-            current_step = step
-            break
-        else:
-            completed_steps.append(step)
+    configurable = {"servers": {
+                        "tavily-mcp": {
+                            "transport": "stdio",
+                            "command": "npx",
+                            "args": ["-y", "tavily-mcp@0.1.3"],
+                            "env": {
+                                "TAVILY_API_KEY": os.getenv("TAVILY_API_KEY"),
+                            },
+                            "enabled_tools": ["tavily_search_results_json"],
+                            "add_to_agents": ["researcher"],
+                        }
+                    }
+                    }
+    loaded_tools = []
+    mcp_servers = {}
+    for server_name, server_config in configurable["servers"].items():
+        if (
+            server_config["enabled_tools"]
+            and agent_type in server_config["add_to_agents"]
+        ):
+            mcp_servers[server_name] = {
+                k: v
+                for k, v in server_config.items()
+                if k in ("transport", "command", "args", "url", "env")
+            }
+        # Create and execute agent with MCP tools if available
+    if mcp_servers:
+        client = MultiServerMCPClient(mcp_servers)
+        try:
+            mcp_tools = await client.get_tools()
+            for tool in mcp_tools:
+                loaded_tools.append(tool)
+        finally:
+            # Assuming MultiServerMCPClient might have an aclose method for cleanup,
+            # similar to other Langchain clients. If not, this can be removed.
+            # Based on common patterns, it's good practice to close clients.
+            # If client.aclose() doesn't exist or is not needed, this block can be simplified/removed.
+            if hasattr(client, "aclose"):
+                await client.aclose()
+            elif hasattr(client, "close") and callable(client.close): # type: ignore
+                client.close() # type: ignore
 
-    if not current_step:
-        logger.warning("No unexecuted step found")
-        return Command(goto="research_team")
+        #config llm output with structured output
+    llm = get_llm_by_type(AGENT_LLM_MAP[agent_type])
 
-    logger.info(f"Executing step: {current_step.title}")
+    prompt = lambda state: apply_prompt_template(agent_type, state)
 
-    # Format completed steps information
-    completed_steps_info = ""
-    if completed_steps:
-        completed_steps_info = "# Existing Research Findings\n\n"
-        for i, step in enumerate(completed_steps):
-            completed_steps_info += f"## Existing Finding {i+1}: {step.title}\n\n"
-            completed_steps_info += f"<finding>\n{step.execution_res}\n</finding>\n\n"
+    agent = create_react_agent(
+        name=agent_type, 
+        model=llm, 
+        tools=loaded_tools, 
+        prompt=prompt)
 
-    # Prepare the input for the agent with completed steps info
+    model_input = set_model_input(current_plan, agent_type, language)
+
+    response_content = await _execute_agent_step(model_input, agent, agent_type)
+
+    current_plan = update_current_plan(current_plan, response_content, agent_type)
+
+    return Command(
+        update={
+            "observations": observations + [response_content],
+        },
+        goto="research_team",
+    )
+
+
+async def coder_node(
+    state: State, config: RunnableConfig
+) -> Command[Literal["research_team"]]:
+    """Coder node that do code analysis."""
+    logger.info("Coder node is coding.")
+    current_plan = state.get("current_plan")
+    observations = state.get("observations", [])
+    language = state.get("locale", "zh-CN")
+    agent_type = "coder"
+
+    loaded_tools = [python_repl_tool]
+
+    llm = get_llm_by_type(AGENT_LLM_MAP[agent_type])
+    prompt = lambda state: apply_prompt_template(agent_type, state)
+
+    agent = create_react_agent(
+        name=agent_type, 
+        model=llm, 
+        tools=loaded_tools, 
+        prompt=prompt)
+
+    model_input = set_model_input(current_plan, agent_type, language)
+    response_content = await _execute_agent_step(model_input, agent, agent_type)
+
+    current_plan = update_current_plan(current_plan, response_content, agent_type)
+
+    return Command(
+        update={
+            "observations": observations + [response_content],
+        },
+        goto="research_team",
+    )
+
+
+async def loader_node(
+    state: State, config: RunnableConfig
+) -> Command[Literal["init_forcast_node"]]:
+    """Loader node that handles loading and processing local data files."""
+    logger.info("Loader node is loading and processing local data files.")
+
+    current_plan = state.get("current_plan")
+    language = state.get("locale", "zh-CN")
+    agent_type = "loader"
+
+    pg_database_url = f"postgresql://{PG_USER_NAME}:{PG_PASSWORD}@10.36.21.200:5432/dqdb?sslmode=disable"
+    mcp_servers = {
+        "postgres-mcp": {
+            "transport": "stdio",
+            "command": "uv",
+            "args": ["tool", "run", "postgres-mcp", "--access-mode=unrestricted"],
+            "env": {
+                "DATABASE_URI": pg_database_url
+            }
+        }
+    }
+    client = MultiServerMCPClient(mcp_servers)
+    try:
+        mcp_tools = await client.get_tools()
+    finally:
+        if hasattr(client, "aclose"):
+            await client.aclose()
+        elif hasattr(client, "close") and callable(client.close): # type: ignore
+            client.close() # type: ignore
+
+    loaded_tools = []
+    for tool in mcp_tools:
+        loaded_tools.append(tool)
+
+    #config llm output with structured output
+    llm = get_llm_by_type(AGENT_LLM_MAP[agent_type])
+
+    prompt = lambda state: apply_prompt_template(agent_type, state)
+
+    agent = create_react_agent(
+            name=agent_type, 
+            model=llm, 
+            tools=loaded_tools, 
+            prompt=prompt)
+
+    agent_input = set_model_input(current_plan, agent_type, language)
+    response_content= await _execute_agent_step(agent_input, agent, agent_type)
+
+    response_content = repair_json_output(response_content)
+    loader_output = json.loads(response_content)
+
+    #create a pandas dataframe from the loader_output
+    df = pd.DataFrame(loader_output["sale_data"])
+    df.columns = ["period", "quantity"]
+    #convert the period to datetime
+    df['period'] = pd.to_datetime(df['period'], format='%Y%m')
+
+    # Set date as index
+    df = df.set_index('period')
+
+    save_fold = "src/ana_flow/temp_data"
+    df.to_csv(os.path.join(save_fold, "sales_data.csv"))
+
+    return Command(
+        goto="init_forcast_node",
+    )
+
+async def init_forcast_node(state: State) -> Command[Literal["research_team"]]:
+    """to do the first step forcest use arima or vector arima model to forecast the sales data"""
+    logger.info("Init forcast node is forecasting the sales data as the first step.")
+    observations = state.get("observations", [])
+    current_plan = state.get("current_plan")
+    
+    agent_type = "init_forcast"
+    
+    mcp_servers = {
+        "market-forecaster": {
+            "transport": "stdio",
+            "command": "uv",
+            "args": ["tool", "run", "market-forecaster"],
+        }
+    }
+
+    client = MultiServerMCPClient(mcp_servers)
+    try:
+        mcp_tools = await client.get_tools()
+    finally:
+        if hasattr(client, "aclose"):
+            await client.aclose()
+        elif hasattr(client, "close") and callable(client.close): # type: ignore
+            client.close() # type: ignore
+
+    loaded_tools = []
+    for tool in mcp_tools:
+        loaded_tools.append(tool)
+
+    llm = get_llm_by_type(AGENT_LLM_MAP[agent_type])
+
+    prompt = lambda state: apply_prompt_template(agent_type, state)
+
+    agent = create_react_agent(
+        name=agent_type, 
+        model=llm, 
+        tools=loaded_tools, 
+        prompt=prompt)
+
+    title = "use arima model to forecast the sales data"
+    description = "use Time Series Analysis Tool, use arima model to forecast the sales data, and please load csv data from src/ana_flow/temp_data/sales_data.csv"
+    language = "zh-CN"
     agent_input = {
         "messages": [
             HumanMessage(
-                content=f"{completed_steps_info}# Current Task\n\n## Title\n\n{current_step.title}\n\n## Description\n\n{current_step.description}\n\n## Locale\n\n{state.get('locale', 'en-US')}"
+                content=f"# Current Task\n\n## Title\n\n{title}\n\n## Description\n\n{description}\n\n## Locale\n\n{language}"
             )
+
         ]
     }
 
-    # Add citation reminder for researcher agent
-    if agent_name == "researcher":
-        agent_input["messages"].append(
+    response_content = await _execute_agent_step(agent_input, agent, agent_type)
+
+    current_plan = update_current_plan(current_plan, response_content, agent_type)
+
+    return Command(
+        update={
+            "messages": [
+                HumanMessage(content=response_content, name="init_forcast"),
+            ],
+            "observations": observations + [response_content],
+        },
+        goto="research_team",
+    )
+
+def conclusion_node(state: State) -> Command[Literal["research_team"]]:
+    """Conclusion node that makes final predictions based on model results and adjusts them according to text information."""
+    logger.info("Conclusion node making final predictions")
+    current_plan = state.get("current_plan")
+    observations = state.get("observations", [])
+    language = state.get("locale", "zh-CN")
+
+    # Prepare input for the conclusion node
+    input_ = {
+        "messages": [
             HumanMessage(
-                content="IMPORTANT: DO NOT include inline citations in the text. Instead, track all sources and include a References section at the end using link reference format. Include an empty line between each citation for better readability. Use this format for each reference:\n- [Source Title](URL)\n\n- [Another Source](URL)",
-                name="system",
+                f"# Research Requirements\n\n## Task\n\n{current_plan.title}\n\n## Description\n\n{current_plan.thought}"
+            )
+        ],
+        "locale": language,
+    }
+    invoke_messages = apply_prompt_template("conclusion", input_)
+    
+    # Add all observations as context for the conclusion
+    for observation in observations:
+        invoke_messages.append(
+            HumanMessage(
+                content=f"Below are some observations for the research task:\n\n{observation}",
+                name="observation",
             )
         )
+    
+    # Add specific instruction for conclusion node
+    invoke_messages.append(
+        HumanMessage(
+            content="IMPORTANT: You are the final conclusion node. Your task is to:\n\n1. Review all the prediction model results from previous steps\n2. Analyze all the text information and market insights gathered\n3. Make final sales predictions by adjusting the model predictions based on qualitative factors\n4. Provide a comprehensive conclusion that combines quantitative model outputs with qualitative market analysis\n5. Include confidence levels and reasoning for your final predictions\n6. Focus on actionable insights and clear recommendations\n\nDo NOT perform any web research or code execution. Base your conclusions ONLY on the provided information.",
+            name="system",
+        )
+    )
+    
+    logger.debug(f"Current invoke messages: {invoke_messages}")
+    response = get_llm_by_type(AGENT_LLM_MAP["conclusion"]).invoke(invoke_messages)
+    response_content = response.content
+    logger.info(f"conclusion response: {response_content}")
 
+    #updata execution_res
+    current_plan = update_current_plan(current_plan, response_content, "conclusion")
+
+    return Command(
+        update={
+            "messages": [
+                HumanMessage(content=response_content, name="conclusion"),
+            ],
+            "observations": observations + [response_content],
+        },
+        goto="research_team",
+    )
+
+async def _execute_agent_step(agent_input, agent, agent_type: str) -> str:
     # Invoke the agent
     default_recursion_limit = 25
     try:
@@ -445,190 +688,65 @@ async def _execute_agent_step(
         result = await agent.ainvoke(
             input=agent_input, config={"recursion_limit": recursion_limit}
         )
-        logger.debug(f"Current state messages: {state['messages']}")
     except Exception as e:
         logger.error(f"Error invoking agent: {e}")
         # return Command(goto="research_team")
 
     # Process the result
     response_content = result["messages"][-1].content
-    logger.debug(f"{agent_name.capitalize()} full response: {response_content}")
+    logger.debug(f"{agent_type.capitalize()} full response: {response_content}")
 
-    # Update the step with the execution result
-    current_step.execution_res = response_content
-    logger.info(f"Step '{current_step.title}' execution completed by {agent_name}")
+    return response_content
 
-    if agent_name == "researcher":
-        return Command(
-            update={
-                "messages": [
-                    HumanMessage(content=response_content, name=agent_name),
-                ],
-                "observations": observations + [response_content],
-            },
-            goto="human_edit")
+def set_model_input(current_plan: Plan, agent_name: str, language: str) -> dict:
+    current_step = None
+    completed_steps = []
+    for step in current_plan.steps:
+        if not step.execution_res:
+            current_step = step
+            break
+        else:
+            completed_steps.append(step)
 
-    return Command(
-        update={
-            "messages": [
-                HumanMessage(
-                    content=response_content,
-                    name=agent_name,
-                )
-            ],
-            "observations": observations + [response_content],
-        },
-        goto="research_team",
-    )
+    if not current_step:
+        logger.warning("No unexecuted step found")
+        return Command(goto="research_team")
 
+    logger.info(f"Executing step: {current_step.title}")
 
-async def _setup_and_execute_agent_step(
-    state: State,
-    agent_type: str,
-    default_tools: list,
-    config: RunnableConfig = None,
-) -> Command[Literal["research_team"]]:
-    """Helper function to set up an agent with appropriate tools and execute a step.
+    # Format completed steps information
+    completed_steps_info = ""
+    if completed_steps:
+        completed_steps_info = "# Existing Research Findings\n\n"
+        for i, step in enumerate(completed_steps):
+            completed_steps_info += f"## Existing Finding {i+1}: {step.title}\n\n"
+            completed_steps_info += f"<finding>\n{step.execution_res}\n</finding>\n\n"
 
-    This function handles the common logic for both researcher_node and coder_node:
-    1. Configures MCP servers and tools based on agent type
-    2. Creates an agent with the appropriate tools or uses the default agent
-    3. Executes the agent on the current step
-
-    Args:
-        state: The current state
-        agent_type: The type of agent ("researcher" or "coder")
-        default_tools: The default tools to add to the agent
-        config: The runnable config
-
-    Returns:
-        Command to update state and go to research_team
-    """
-    mcp_servers = {}
-
-    # Extract MCP server configuration for this agent type
-    if config is not None:
-        for server_name, server_config in config.mcp_settings["servers"].items():
-            if (
-                server_config["enabled_tools"]
-                and agent_type in server_config["add_to_agents"]
-            ):
-                mcp_servers[server_name] = {
-                    k: v
-                    for k, v in server_config.items()
-                    if k in ("transport", "command", "args", "url", "env")
-                }
-
-
-    # Create and execute agent with MCP tools if available
-    if mcp_servers:
-        client = MultiServerMCPClient(mcp_servers)
-        loaded_tools = default_tools[:]
-        try:
-            mcp_tools = await client.get_tools()
-            for tool in mcp_tools:
-                loaded_tools.append(tool)
-        finally:
-            # Assuming MultiServerMCPClient might have an aclose method for cleanup,
-            # similar to other Langchain clients. If not, this can be removed.
-            # Based on common patterns, it's good practice to close clients.
-            # If client.aclose() doesn't exist or is not needed, this block can be simplified/removed.
-            if hasattr(client, "aclose"):
-                await client.aclose()
-            elif hasattr(client, "close") and callable(client.close): # type: ignore
-                client.close() # type: ignore
-
-        agent = create_agent(agent_type, agent_type, loaded_tools, agent_type)
-        return await _execute_agent_step(state, agent, agent_type)
-    else:
-        # Use default tools if no MCP servers are configured
-        agent = create_agent(agent_type, agent_type, default_tools, agent_type)
-        return await _execute_agent_step(state, agent, agent_type)
-
-
-async def researcher_node(
-    state: State, config: RunnableConfig
-) -> Command[Literal["research_team"]]:
-    """Researcher node that do research"""
-    logger.info("Researcher node is researching.")
-    configurable = Configuration.from_runnable_config(config)       
-    return await _setup_and_execute_agent_step(
-        state,
-        "researcher",
-        [],
-        config=configurable,
-    )
-
-
-async def coder_node(
-    state: State, config: RunnableConfig
-) -> Command[Literal["research_team"]]:
-    """Coder node that do code analysis."""
-    return await _setup_and_execute_agent_step(
-        state,
-        "coder",
-        [python_repl_tool, csv_loader_tool],
-    )
-
-
-async def loader_node(
-    state: State, config: RunnableConfig
-) -> Command[Literal["research_team"]]:
-    """Loader node that handles loading and processing local data files."""
-    return await _setup_and_execute_agent_step(
-        state,
-        "loader",
-        [csv_loader_tool, python_repl_tool],
-    )
-
-def conclusion_node(state: State) -> Command[Literal["research_team"]]:
-    """Conclusion node that makes final predictions based on model results and adjusts them according to text information."""
-    logger.info("Conclusion node making final predictions")
-    current_plan = state.get("current_plan")
-    observations = state.get("observations", [])
-    
-    # Prepare input for the conclusion node
-    input_ = {
+    # Prepare the input for the agent with completed steps info
+    agent_input = {
         "messages": [
             HumanMessage(
-                f"# Research Requirements\n\n## Task\n\n{current_plan.title}\n\n## Description\n\n{current_plan.thought}"
+                content=f"{completed_steps_info}# Current Task\n\n## Title\n\n{current_step.title}\n\n## Description\n\n{current_step.description}\n\n## Locale\n\n{language}"
             )
-        ],
-        "locale": state.get("locale", "en-US"),
+
+        ]
     }
-    invoke_messages = apply_prompt_template("conclusion", input_)
-    
-    # Add all observations as context for the conclusion
-    for observation in observations:
-        invoke_messages.append(
+
+    # Add citation reminder for researcher agent
+    if agent_name == "researcher":
+        agent_input["messages"].append(
             HumanMessage(
-                content=f"Below are some observations for the research task:\n\n{observation}",
-                name="observation",
+                content="IMPORTANT: DO NOT include inline citations in the text. Instead, track all sources and include a References section at the end using link reference format. Include an empty line between each citation for better readability. Use this format for each reference:\n- [Source Title](URL)\n\n- [Another Source](URL)",
+                name="system",
             )
         )
-    
-    # Add specific instruction for conclusion node
-    invoke_messages.append(
-        HumanMessage(
-            content="IMPORTANT: You are the final conclusion node. Your task is to:\n\n1. Review all the prediction model results from previous steps\n2. Analyze all the text information and market insights gathered\n3. Make final sales predictions by adjusting the model predictions based on qualitative factors\n4. Provide a comprehensive conclusion that combines quantitative model outputs with qualitative market analysis\n5. Include confidence levels and reasoning for your final predictions\n6. Focus on actionable insights and clear recommendations\n\nDo NOT perform any web research or code execution. Base your conclusions ONLY on the provided information.",
-            name="system",
-        )
-    )
-    
-    logger.debug(f"Current invoke messages: {invoke_messages}")
-    response = get_llm_by_type(AGENT_LLM_MAP["conclusion"]).invoke(invoke_messages)
-    response_content = response.content
-    logger.info(f"conclusion response: {response_content}")
+    return agent_input
 
-    #updata execution_res
-    current_plan.steps[-1].execution_res = response_content
-
-    return Command(
-        update={
-            "messages": [
-                HumanMessage(content=response_content, name="conclusion"),
-            ],
-            "observations": observations + [response_content],
-        },
-        goto="research_team",
-    )
+def update_current_plan(current_plan: Plan, response_content: str, agent_type: str) -> Plan:
+    for step in current_plan.steps:
+        if not step.execution_res:
+            current_step_index = current_plan.steps.index(step)
+            current_plan.steps[current_step_index].execution_res = response_content
+            break
+    logger.info(f"Step '{current_plan.steps[current_step_index].title}' execution completed by {agent_type}")
+    return current_plan

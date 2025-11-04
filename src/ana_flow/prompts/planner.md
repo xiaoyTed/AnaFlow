@@ -56,7 +56,7 @@ Before creating a detailed plan, assess if there is sufficient context to answer
 Different types of steps have different web search and step type requirements:
 
 1. **Data loading Step**(`need_web_seach: false`, `step_type: loading`):
-   - load file from local file path, "./local_data"
+   - load target vehical brand sales data from database
    - read human messages, contain human target vehical brand in description
 
 2. **Research Steps** (`need_web_search: true`,  `step_type: rearch`):

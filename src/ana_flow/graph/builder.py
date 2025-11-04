@@ -17,6 +17,7 @@ from .nodes import (
     loader_node,
     human_feedback_node,
     background_investigation_node,
+    init_forcast_node,
 )
 
 
@@ -33,6 +34,7 @@ def _build_base_graph():
     builder.add_node("researcher", researcher_node)
     builder.add_node("coder", coder_node)
     builder.add_node("loader", loader_node)
+    builder.add_node("init_forcast_node", init_forcast_node)
     builder.add_node("human_feedback", human_feedback_node)
     builder.add_node("human_edit", human_edit_node)
     builder.add_edge("reporter", END)
