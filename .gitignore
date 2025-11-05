@@ -21,3 +21,4 @@ local_data/
 src/ana_flow/temp_data/
 web/.serena/
 *.txt
+*.pkl

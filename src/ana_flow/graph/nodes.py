@@ -535,6 +535,9 @@ async def loader_node(
     # Set date as index
     df = df.set_index('period')
 
+    # cut the data, drop last three months data
+    df = df.iloc[:-3]
+
     save_fold = "src/ana_flow/temp_data"
     df.to_csv(os.path.join(save_fold, "sales_data.csv"))
 
@@ -582,7 +585,7 @@ async def init_forcast_node(state: State) -> Command[Literal["research_team"]]:
         prompt=prompt)
 
     title = "use arima model to forecast the sales data"
-    description = "use Time Series Analysis Tool, use arima model to forecast the sales data, and please load csv data from src/ana_flow/temp_data/sales_data.csv"
+    description = "use Time Series Analysis Tool to analysis, use arima model to forecast the sales data, and please load csv data from src/ana_flow/temp_data/sales_data.csv"
     language = "zh-CN"
     agent_input = {
         "messages": [

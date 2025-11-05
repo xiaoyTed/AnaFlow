@@ -76,7 +76,7 @@ def main(
         ),
         choices=[
             ask_own_option,
-            "Forecast sales of Geely Galaxy E5 in the Chinese market for next five month from June to November" if language == "English" else "请预测吉利银河E5 530未来3个月的销量，从10月到12月。",
+            "Forecast sales of Geely Galaxy E5 in the Chinese market for next five month from June to November" if language == "English" else "这是模拟测试，请预测吉利银河E5 530未来6个月的销量，从7月到12月。",
         ],
     ).execute()
 
