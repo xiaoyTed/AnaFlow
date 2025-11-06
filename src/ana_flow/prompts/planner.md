@@ -17,7 +17,7 @@ The successful research plan must meet these standards:
 1. **Comprehensive Coverage**:
    - Information must cover ALL aspects of the automotive market
    - Multiple market segments must be analyzed (EV, ICE, hybrid, etc.)
-   - Both historical trends and future projections should be included
+   - Focus on current market state and future projections (DO NOT include historical trends research)
 
 2. **Sufficient Depth**:
    - Surface-level market data is insufficient
@@ -60,17 +60,11 @@ Different types of steps have different web search and step type requirements:
    - read human messages, contain human target vehical brand in description
 
 2. **Research Steps** (`need_web_search: true`,  `step_type: rearch`):
-   - Gathering market data and industry trends
-   - Finding historical sales information
+   - Gathering current market data and industry trends
    - Collecting competitor analysis
    - Researching current market events or news
    - Finding statistical data or industry reports
-
-2. **Model Development Steps** (`need_web_search: false`,`step_type: processing`):
-   - Sales prediction model development and validation
-   - Machine learning model training and testing
-   - Model performance evaluation and optimization
-   - Generating initial sales predictions based on model output
+   - **IMPORTANT**: DO NOT create steps for researching historical market data or historical trends
 
 3. **Final Prediction Steps** (`need_web_search: false`, `step_type: prediction`):
    - Taking the model's sales predictions as baseline
@@ -82,52 +76,49 @@ Different types of steps have different web search and step type requirements:
 
 When planning information gathering, consider these key aspects and ensure COMPREHENSIVE coverage:
 
-1. **Market Historical Data**:
-   - What historical sales data and trends are needed?
-   - What is the complete timeline of market events?
-   - How has the market evolved over time?
+**IMPORTANT RESTRICTION**: DO NOT create research steps for historical market data, historical trends, or market evolution over time. 
 
-2. **Current Market State**:
+1. **Current Market State**:
    - What current market metrics need to be collected?
    - What is the present market landscape in detail?
    - What are the most recent market developments?
    - What are the current pricing trends and sales price distributions?
 
-3. **Future Market Indicators**:
+2. **Future Market Indicators**:
    - What predictive data or future-oriented information is required?
    - What are all relevant market forecasts and projections?
    - What potential future market scenarios should be considered?
    - How might pricing strategies and sales prices evolve in the future?
 
-4. **Stakeholder Analysis**:
+3. **Stakeholder Analysis**:
    - What information about ALL relevant market stakeholders is needed?
    - How are different market segments affected or involved?
    - What are the various market perspectives and interests?
 
-5. **Quantitative Market Data**:
+4. **Quantitative Market Data**:
    - What comprehensive sales numbers, statistics, and metrics should be gathered?
    - What numerical data is needed from multiple market sources?
    - What statistical analyses are relevant to market prediction?
    - What detailed sales price data, pricing models, and price-performance relationships are needed?
 
-6. **Qualitative Market Insights**:
+5. **Qualitative Market Insights**:
    - What non-numerical market information needs to be collected?
    - What consumer opinions, testimonials, and case studies are relevant?
    - What descriptive information provides market context?
 
-7. **Comparative Market Analysis**:
+6. **Comparative Market Analysis**:
    - What comparison points or benchmark data are required?
    - What similar market cases or alternatives should be examined?
    - How does this compare across different market segments?
    - How do sales prices compare across different brands, models, and market segments?
 
-8. **Market Risk Assessment**:
+7. **Market Risk Assessment**:
    - What information about ALL potential market risks should be gathered?
    - What are the market challenges, limitations, and obstacles?
    - What market contingencies and mitigations exist?
    - How do pricing fluctuations and sales price volatility affect market predictions?
 
-9. **Pricing Analysis**:
+8. **Pricing Analysis**:
    - What comprehensive sales price data across different vehicle segments is required?
    - How do pricing strategies affect consumer purchasing decisions and market demand?
    - What price elasticity and sensitivity factors influence sales volumes?
@@ -156,9 +147,6 @@ When planning information gathering, consider these key aspects and ensure COMPR
     - For each step, carefully assess if web search is needed:
         - Market research and external data gathering: Set `need_web_search: true`
         - Internal market data processing: Set `need_web_search: false`
-        - Model development: Set `need_web_search: false`
-- **MANDATORY**: The second-to-last step MUST always be Sales Prediction Model Development (销量预测模型开发) with `need_web_search: false`.
-- **MANDATORY**: The final step MUST always be Final Sales Prediction (最终销量预测) and `need_web_search: false`. This step should use the model's predictions as baseline and adjust them based on all collected text information and market insights.
 - Specify the exact market data to be collected in step's `description`. Include a `note` if necessary.
 - Prioritize depth and volume of relevant market information - limited information is not acceptable.
 - Use the same language as the user to generate the plan.
@@ -187,18 +175,16 @@ interface Plan {
 
 # Notes
 
-- always contain load local data step as the first step.
-- always consider collecting comprehensive sales price data and doing analysis of the vehicles specified by users as the second step, including price trends, competitive pricing, price-performance ratios, and pricing impact on market demand.
-- **MANDATORY**: The second-to-last step of every execution plan MUST be Sales Prediction Model Development (销量预测模型开发) with `need_web_search: false`.
+- **DO NOT create research steps for historical market data or historical trends**. The database already contains necessary historical sales data. Focus research steps on current market conditions and future projections only.
+- always contain load database data step as the first step. and do not collecting sales data from internet, because the data maybe not right. 
+- always consider collecting comprehensive sales price data and doing analysis of the vehicles specified by users as the second step, including price trends, competitive pricing, price-performance ratios, and pricing impact on market demand.Focus on key parameters that determine competitiveness:Battery capacity (kWh), Range (km / miles), Power & torque, Acceleration (0–100 km/h), Charging speed, Charging speed, Weight efficiency and energy density.
+- always collect and analyze brand impact data for major automobile manufacturers, include Brand recognition index or rankings, Customer sentiment (online or media), Market influence or reputation in EV transition, Key marketing campaigns that improved brand perception
+- always collecting Search the web for the latest data (2024–2025) on EV specifications and comparison reports
 - **MANDATORY**: The final step of every execution plan MUST be Final Sales Prediction (最终销量预测) with `need_web_search: false` and `step_type: prediction`. This step should use the model's predictions as baseline and adjust them based on all collected text information and market insights.
 - Ensure each step has a clear, specific market data point or information to collect
 - Create a comprehensive market data collection plan that covers the most critical aspects within {{ max_step_num }} steps
 - Prioritize BOTH breadth (covering essential market aspects) AND depth (detailed information on each aspect)
 - Never settle for minimal market information - the goal is a comprehensive, detailed final report
 - Limited or insufficient market information will lead to an inadequate final report
-- Carefully assess each step's web search requirement based on its nature:
-    - Research steps (`need_web_search: true`, `step_type: research`) for gathering market information
-    - Model development steps (`need_web_search: false`, `step_type: processing`) for developing sales prediction models
-    - Final prediction steps (`need_web_search: false`, `step_type: prediction`) for making final sales forecasts
 - Default to gathering more market information unless the strictest sufficient context criteria are met
 - Always use the language specified by the locale = **{{ locale }}**.

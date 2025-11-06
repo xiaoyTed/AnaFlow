@@ -320,8 +320,6 @@ def research_team_node(
         return Command(goto="researcher")
     if step.step_type and step.step_type == StepType.LOADING:
         return Command(goto="loader")
-    if step.step_type and step.step_type == StepType.PROCESSING:
-        return Command(goto="coder")
     if step.step_type and step.step_type == StepType.PREDICTION:
         return Command(goto="conclusion")
     return Command(goto="planner")
@@ -585,7 +583,7 @@ async def init_forcast_node(state: State) -> Command[Literal["research_team"]]:
         prompt=prompt)
 
     title = "use arima model to forecast the sales data"
-    description = "use Time Series Analysis Tool to analysis, use arima model to forecast the sales data, and please load csv data from src/ana_flow/temp_data/sales_data.csv"
+    description = "use Time Series Analysis Tool to analysis, use arima model to forecast the sales data, and please load csv data from src/ana_flow/temp_data/sales_data.csv, contain your forecast result in the output"
     language = "zh-CN"
     agent_input = {
         "messages": [
@@ -610,44 +608,40 @@ async def init_forcast_node(state: State) -> Command[Literal["research_team"]]:
         goto="research_team",
     )
 
-def conclusion_node(state: State) -> Command[Literal["research_team"]]:
+async def conclusion_node(state: State) -> Command[Literal["research_team"]]:
     """Conclusion node that makes final predictions based on model results and adjusts them according to text information."""
     logger.info("Conclusion node making final predictions")
     current_plan = state.get("current_plan")
     observations = state.get("observations", [])
     language = state.get("locale", "zh-CN")
 
+    agent_type = "conclusion"
+
     # Prepare input for the conclusion node
-    input_ = {
-        "messages": [
-            HumanMessage(
-                f"# Research Requirements\n\n## Task\n\n{current_plan.title}\n\n## Description\n\n{current_plan.thought}"
-            )
-        ],
-        "locale": language,
-    }
-    invoke_messages = apply_prompt_template("conclusion", input_)
+    agent_input = set_model_input(current_plan, agent_type, language)
     
     # Add all observations as context for the conclusion
     for observation in observations:
-        invoke_messages.append(
+        agent_input["messages"].append(
             HumanMessage(
                 content=f"Below are some observations for the research task:\n\n{observation}",
                 name="observation",
             )
         )
-    
-    # Add specific instruction for conclusion node
-    invoke_messages.append(
-        HumanMessage(
-            content="IMPORTANT: You are the final conclusion node. Your task is to:\n\n1. Review all the prediction model results from previous steps\n2. Analyze all the text information and market insights gathered\n3. Make final sales predictions by adjusting the model predictions based on qualitative factors\n4. Provide a comprehensive conclusion that combines quantitative model outputs with qualitative market analysis\n5. Include confidence levels and reasoning for your final predictions\n6. Focus on actionable insights and clear recommendations\n\nDo NOT perform any web research or code execution. Base your conclusions ONLY on the provided information.",
-            name="system",
-        )
-    )
-    
-    logger.debug(f"Current invoke messages: {invoke_messages}")
-    response = get_llm_by_type(AGENT_LLM_MAP["conclusion"]).invoke(invoke_messages)
-    response_content = response.content
+    logger.debug(f"Current invoke messages: {agent_input}")
+
+    loaded_tools = [python_repl_tool]
+
+    llm = get_llm_by_type(AGENT_LLM_MAP["conclusion"])
+    prompt = lambda state: apply_prompt_template(agent_type, state)
+
+    agent = create_react_agent(
+        name=agent_type, 
+        model=llm, 
+        tools=loaded_tools, 
+        prompt=prompt)
+
+    response_content= await _execute_agent_step(agent_input, agent, agent_type)
     logger.info(f"conclusion response: {response_content}")
 
     #updata execution_res
