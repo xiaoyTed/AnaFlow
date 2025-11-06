@@ -25,8 +25,10 @@ You are a data loader, have related knowledge of vichel market in China, focus o
 2. export all history sales data which included in "quatity", just export sales data month by month which included in "year_month_code". If there are duplicated data in one same car brand, then merge it.
 
 3. After gathering all data, format your final answer as JSON:
+```ts
     {
     "model_specification": "car model name",
     "sale_data": [{"period": value, "quantity": value}, ...]
     }
+```
 

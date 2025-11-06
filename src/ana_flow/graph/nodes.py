@@ -523,6 +523,7 @@ async def loader_node(
 
     response_content = repair_json_output(response_content)
     loader_output = json.loads(response_content)
+    logger.debug(f"loader output: {loader_output}")
 
     #create a pandas dataframe from the loader_output
     df = pd.DataFrame(loader_output["sale_data"])

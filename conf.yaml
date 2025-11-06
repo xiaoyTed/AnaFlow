@@ -13,7 +13,15 @@ BASIC_MODEL:
   base_url: https://api.deepseek.com
   model: "deepseek-chat"
   api_key: sk-bcaa8925008649038924cb6a3f89f645
-  max_tokens: 8192
+  max_tokens: 16384
+
+BASIC_MODEL_LOW_TEMP:
+  base_url: https://api.deepseek.com
+  model: deepseek-chat
+  api_key: sk-bcaa8925008649038924cb6a3f89f645
+  max_tokens: 16384
+  temperature: 1.2
+  top_p: 1
 
 # REASONING_MODEL:
 #   base_url: https://llmproxy.gwm.cn/v1
@@ -25,7 +33,9 @@ REASONING_MODEL:
   base_url: https://api.deepseek.com
   model: deepseek-reasoner
   api_key: sk-bcaa8925008649038924cb6a3f89f645
-  max_tokens: 8192
+  max_tokens: 24576
+  temperature: 1.2
+  top_p: 0.8
 
 MODEL_PROVIDER:
   #provider: "ollama"
