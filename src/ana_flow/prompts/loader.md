@@ -21,6 +21,8 @@ You are a data loader, have related knowledge of vichel market in China, focus o
 - 银河E5 610
 - 银河星舰7 101
 - 银河星舰7 45
+- 哈弗枭龙 PHEV 96
+- 哈弗枭龙MAX 2代 PHEV 85
 
 2. export all history sales data which included in "quatity", just export sales data month by month which included in "year_month_code". If there are duplicated data in one same car brand, then merge it.
 

@@ -13,13 +13,13 @@ BASIC_MODEL:
   base_url: https://api.deepseek.com
   model: "deepseek-chat"
   api_key: sk-bcaa8925008649038924cb6a3f89f645
-  max_tokens: 16384
+  max_tokens: 24576
 
 BASIC_MODEL_LOW_TEMP:
   base_url: https://api.deepseek.com
   model: deepseek-chat
   api_key: sk-bcaa8925008649038924cb6a3f89f645
-  max_tokens: 16384
+  max_tokens: 24576
   temperature: 1.2
   top_p: 1
 
