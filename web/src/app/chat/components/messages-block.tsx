@@ -13,8 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { fastForwardReplay } from "~/core/api";
-import { useReplayMetadata } from "~/core/api/hooks";
 import type { Option, Resource } from "~/core/messages";
 import { useReplay } from "~/core/replay";
 import { sendMessage, useMessageIds, useStore } from "~/core/store";
@@ -31,7 +29,6 @@ export function MessagesBlock({ className }: { className?: string }) {
   const messageCount = messageIds.length;
   const responding = useStore((state) => state.responding);
   const { isReplay } = useReplay();
-  const { title: replayTitle, hasError: replayHasError } = useReplayMetadata();
   const [replayStarted, setReplayStarted] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const [feedback, setFeedback] = useState<{ option: Option } | null>(null);
@@ -81,7 +78,6 @@ export function MessagesBlock({ className }: { className?: string }) {
   const [fastForwarding, setFastForwarding] = useState(false);
   const handleFastForwardReplay = useCallback(() => {
     setFastForwarding(!fastForwarding);
-    fastForwardReplay(!fastForwarding);
   }, [fastForwarding]);
   return (
     <div className={cn("flex h-full flex-col", className)}>
@@ -152,7 +148,7 @@ export function MessagesBlock({ className }: { className?: string }) {
                   <CardHeader className={cn("flex-grow", responding && "pl-3")}>
                     <CardTitle>
                       <RainbowText animated={responding}>
-                        {responding ? "Replaying" : `${replayTitle}`}
+                        {responding ? "Replaying" : "AnaFlow"}
                       </RainbowText>
                     </CardTitle>
                     <CardDescription>
@@ -166,7 +162,6 @@ export function MessagesBlock({ className }: { className?: string }) {
                     </CardDescription>
                   </CardHeader>
                 </div>
-                {!replayHasError && (
                   <div className="pr-4">
                     {responding && (
                       <Button
@@ -185,7 +180,6 @@ export function MessagesBlock({ className }: { className?: string }) {
                       </Button>
                     )}
                   </div>
-                )}
               </div>
             </Card>
             {!replayStarted && env.NEXT_PUBLIC_STATIC_WEBSITE_ONLY && (
