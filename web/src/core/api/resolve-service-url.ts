@@ -4,7 +4,7 @@
 import { env } from "~/env";
 
 export function resolveServiceURL(path: string) {
-  let BASE_URL = "http://192.168.31.194:8000/api/";
+  let BASE_URL = "http://10.37.21.3:9000/api/";
   if (!BASE_URL.endsWith("/")) {
     BASE_URL += "/";
   }

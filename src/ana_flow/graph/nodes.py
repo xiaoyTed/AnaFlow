@@ -535,7 +535,7 @@ async def loader_node(
     df = df.set_index('period')
 
     # cut the data, drop last three months data
-    df = df.iloc[:-3]
+    # df = df.iloc[:-3]
 
     save_fold = "src/ana_flow/temp_data"
     df.to_csv(os.path.join(save_fold, "sales_data.csv"))
