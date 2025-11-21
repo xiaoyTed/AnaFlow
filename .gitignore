@@ -22,3 +22,4 @@ src/ana_flow/temp_data/
 web/.serena/
 *.txt
 *.pkl
+config.yaml
