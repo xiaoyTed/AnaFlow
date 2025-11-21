@@ -6,7 +6,7 @@
 #删除进程：pm2 delete web
 
 export PYTHONPATH=src
-nohup uvicorn ana_flow.server.app:app --host 0.0.0.0 --port 8000 >>info.log &
+nohup uvicorn ana_flow.server.app:app --host 0.0.0.0 --port 9000 >>info.log &
 
 # Copy static assets to standalone directory
 cp -r web/.next/static web/.next/standalone/.next/

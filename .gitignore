@@ -23,3 +23,4 @@ web/.serena/
 *.txt
 *.pkl
 config.yaml
+info.log
