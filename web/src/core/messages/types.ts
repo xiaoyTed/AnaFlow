@@ -15,6 +15,7 @@ export interface Message {
     | "init_forcast"
     | "coder"
     | "reporter"
+    | "conclusion"
     | "podcast";
   role: MessageRole;
   isStreaming?: boolean;
