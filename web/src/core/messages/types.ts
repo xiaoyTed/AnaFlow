@@ -10,6 +10,9 @@ export interface Message {
     | "coordinator"
     | "planner"
     | "researcher"
+    | "loader"
+    | "init_forcast_node"
+    | "init_forcast"
     | "coder"
     | "reporter"
     | "podcast";

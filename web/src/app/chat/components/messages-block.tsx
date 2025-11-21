@@ -27,8 +27,7 @@ import { Welcome } from "./welcome";
 export function MessagesBlock({ className }: { className?: string }) {
   const messageIds = useMessageIds();
   const messageCount = messageIds.length;
-  const responding = useStore((state) => state.responding);
-  const { isReplay } = useReplay();
+  const responding = useStore((state) => state.responding)
   const [replayStarted, setReplayStarted] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const [feedback, setFeedback] = useState<{ option: Option } | null>(null);
@@ -86,7 +85,6 @@ export function MessagesBlock({ className }: { className?: string }) {
         onFeedback={handleFeedback}
         onSendMessage={handleSend}
       />
-      {!isReplay ? (
         <div className="relative flex h-42 shrink-0 pb-4">
           {!responding && messageCount === 0 && (
             <ConversationStarter
@@ -103,103 +101,6 @@ export function MessagesBlock({ className }: { className?: string }) {
             onRemoveFeedback={handleRemoveFeedback}
           />
         </div>
-      ) : (
-        <>
-          <div
-            className={cn(
-              "fixed bottom-[calc(50vh+80px)] left-0 transition-all duration-500 ease-out",
-              replayStarted && "pointer-events-none scale-150 opacity-0",
-            )}
-          >
-            <Welcome />
-          </div>
-          <motion.div
-            className="mb-4 h-fit w-full items-center justify-center"
-            initial={{ opacity: 0, y: "20vh" }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <Card
-              className={cn(
-                "w-full transition-all duration-300",
-                !replayStarted && "translate-y-[-40vh]",
-              )}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex flex-grow items-center">
-                  {responding && (
-                    <motion.div
-                      className="ml-3"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <video
-                        // Walking deer animation, designed by @liangzhaojun. Thank you for creating it!
-                        src="/images/walking_deer.webm"
-                        autoPlay
-                        loop
-                        muted
-                        className="h-[42px] w-[42px] object-contain"
-                      />
-                    </motion.div>
-                  )}
-                  <CardHeader className={cn("flex-grow", responding && "pl-3")}>
-                    <CardTitle>
-                      <RainbowText animated={responding}>
-                        {responding ? "Replaying" : "AnaFlow"}
-                      </RainbowText>
-                    </CardTitle>
-                    <CardDescription>
-                      <RainbowText animated={responding}>
-                        {responding
-                          ? "AnaFlow is now replaying the conversation..."
-                          : replayStarted
-                            ? "The replay has been stopped."
-                            : `You're now in AnaFlow's replay mode. Click the "Play" button on the right to start.`}
-                      </RainbowText>
-                    </CardDescription>
-                  </CardHeader>
-                </div>
-                  <div className="pr-4">
-                    {responding && (
-                      <Button
-                        className={cn(fastForwarding && "animate-pulse")}
-                        variant={fastForwarding ? "default" : "outline"}
-                        onClick={handleFastForwardReplay}
-                      >
-                        <FastForward size={16} />
-                        Fast Forward
-                      </Button>
-                    )}
-                    {!replayStarted && (
-                      <Button className="w-24" onClick={handleStartReplay}>
-                        <Play size={16} />
-                        Play
-                      </Button>
-                    )}
-                  </div>
-              </div>
-            </Card>
-            {!replayStarted && env.NEXT_PUBLIC_STATIC_WEBSITE_ONLY && (
-              <div className="text-muted-foreground w-full text-center text-xs">
-                * This site is for demo purposes only. If you want to try your
-                own question, please{" "}
-                <a
-                  className="underline"
-                  href="https://github.com/bytedance/deer-flow"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  click here
-                </a>{" "}
-                to clone it locally and run it.
-              </div>
-            )}
-          </motion.div>
-        </>
-      )}
     </div>
   );
 }

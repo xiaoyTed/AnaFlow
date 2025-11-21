@@ -190,7 +190,10 @@ function appendMessage(message: Message) {
   if (
     message.agent === "coder" ||
     message.agent === "reporter" ||
-    message.agent === "researcher" 
+    message.agent === "researcher" ||
+    message.agent === "loader" ||
+    message.agent === "init_forcast_node" ||
+    message.agent === "init_forcast"
   ) {
     if (!getOngoingResearchId()) {
       const id = message.id;

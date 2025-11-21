@@ -14,11 +14,10 @@ export function Welcome({ className }: { className?: string }) {
       animate={{ opacity: 1, scale: 1 }}
     >
       <h3 className="mb-2 text-center text-3xl font-medium">
-        👋 Hello, there!
+        👋 你好!
       </h3>
       <div className="text-muted-foreground px-4 text-center text-lg">
-        Welcome to AnaFlow, a deep research assistant built on cutting-edge language models, helps
-        you search on web, browse information, and handle complex tasks.
+        AnaFlow, 欢迎使用，我是你的汽车销量预测助手，你可以向我提问关于汽车销量的问题，我会根据你的要求进行预测。
       </div>
     </motion.div>
   );

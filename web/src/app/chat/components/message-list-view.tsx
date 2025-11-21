@@ -10,7 +10,7 @@ import {
   ChevronRight,
   Lightbulb,
 } from "lucide-react";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { LoadingAnimation } from "~/components/deer-flow/loading-animation";
 import { Markdown } from "~/components/deer-flow/markdown";
@@ -62,6 +62,9 @@ export function MessageListView({
 }) {
   const scrollContainerRef = useRef<ScrollContainerRef>(null);
   const messageIds = useMessageIds();
+  useEffect(() => {
+    console.log("messageIds", messageIds);
+  }, [messageIds]);
   const interruptMessage = useLastInterruptMessage();
   const waitingForFeedbackMessageId = useLastFeedbackMessageId();
   const responding = useStore((state) => state.responding);
