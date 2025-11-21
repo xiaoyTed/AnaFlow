@@ -17,7 +17,7 @@ export function Welcome({ className }: { className?: string }) {
         👋 你好!
       </h3>
       <div className="text-muted-foreground px-4 text-center text-lg">
-        AnaFlow, 欢迎使用，我是你的汽车销量预测助手，你可以向我提问关于汽车销量的问题，我会根据你的要求进行预测。
+        AnaFlow, 欢迎使用，我是你的汽车销量预测助手，你可以向我提问关于汽车销量的问题，我会根据你的要求进行预测并给出市场分析。
       </div>
     </motion.div>
   );

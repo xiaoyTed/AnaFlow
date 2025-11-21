@@ -78,7 +78,7 @@ def get_llm_by_type(
         return _llm_cache[llm_type]
 
     conf = load_yaml_config(
-        str((Path(__file__).parent.parent.parent.parent / "conf.yaml").resolve())
+        str((Path(__file__).parent.parent.parent.parent / "config.yaml").resolve())
     )
     llm = _create_llm_use_conf(llm_type, conf)
     _llm_cache[llm_type] = llm

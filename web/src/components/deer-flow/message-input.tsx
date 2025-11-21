@@ -132,9 +132,7 @@ const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(
         }),
         Placeholder.configure({
           showOnlyCurrent: false,
-          placeholder: provider
-            ? "What can I do for you? \nYou may refer to RAG resources by using @."
-            : "What can I do for you?",
+          placeholder: "请输入你要预测的汽车品牌，并点击箭头开始",
           emptyEditorClass: "placeholder",
         }),
         Extension.create({
