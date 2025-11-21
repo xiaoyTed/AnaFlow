@@ -35,7 +35,10 @@ RUN \
 
 ##### RUNNER
 
-FROM gcr.io/distroless/nodejs20-debian12 AS runner
+# Using node:20-alpine as alternative to distroless (which requires gcr.io access)
+# To use distroless, manually load the image: docker load -i distroless-nodejs20.tar
+FROM node:20-alpine AS runner
+RUN apk add --no-cache dumb-init
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -52,4 +55,6 @@ COPY --from=builder /app/.next/static ./.next/static
 EXPOSE 3000
 ENV PORT=3000
 
-CMD ["server.js"]
+# Use dumb-init for proper signal handling (similar to distroless behavior)
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "server.js"]
