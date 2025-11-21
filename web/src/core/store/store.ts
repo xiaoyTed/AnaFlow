@@ -10,6 +10,7 @@ import { chatStream, generatePodcast } from "../api";
 import type { Message, Resource } from "../messages";
 import { mergeMessage } from "../messages";
 import { parseJSON } from "../utils";
+import { isAbortError } from "../utils/is-abort-error";
 
 import { getChatStreamSettings } from "./settings-store";
 
@@ -146,14 +147,20 @@ export async function sendMessage(
         updateMessage(message);
       }
     }
-  } catch {
-    toast("An error occurred while generating the response. Please try again.");
-    // Update message status.
-    // TODO: const isAborted = (error as Error).name === "AbortError";
+  } catch (error) {
+    const aborted = isAbortError(error);
+    if (!aborted) {
+      toast(
+        "An error occurred while generating the response. Please try again.",
+      );
+    }
     if (messageId != null) {
       const message = getMessage(messageId);
       if (message?.isStreaming) {
         message.isStreaming = false;
+        if (aborted) {
+          message.finishReason = "interrupt";
+        }
         useStore.getState().updateMessage(message);
       }
     }

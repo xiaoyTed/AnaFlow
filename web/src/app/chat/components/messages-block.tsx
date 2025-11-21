@@ -27,7 +27,7 @@ import { Welcome } from "./welcome";
 export function MessagesBlock({ className }: { className?: string }) {
   const messageIds = useMessageIds();
   const messageCount = messageIds.length;
-  const responding = useStore((state) => state.responding)
+  const responding = useStore((state) => state.responding);
   const [replayStarted, setReplayStarted] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const [feedback, setFeedback] = useState<{ option: Option } | null>(null);
@@ -53,7 +53,13 @@ export function MessagesBlock({ className }: { className?: string }) {
             abortSignal: abortController.signal,
           },
         );
-      } catch {}
+      } catch {
+        // no-op, errors handled in sendMessage
+      } finally {
+        if (abortControllerRef.current === abortController) {
+          abortControllerRef.current = null;
+        }
+      }
     },
     [feedback],
   );

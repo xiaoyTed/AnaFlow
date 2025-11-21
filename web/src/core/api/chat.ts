@@ -1,13 +1,10 @@
 // Copyright (c) 2025 Bytedance Ltd. and/or its affiliates
 // SPDX-License-Identifier: MIT
 
-import { env } from "~/env";
-
 import type { MCPServerMetadata } from "../mcp";
 import type { Resource } from "../messages";
-import { extractReplayIdFromSearchParams } from "../replay/get-replay-id";
 import { fetchStream } from "../sse";
-import { sleep } from "../utils";
+import { isAbortError } from "../utils/is-abort-error";
 
 import { resolveServiceURL } from "./resolve-service-url";
 import type { ChatEvent } from "./types";
@@ -37,23 +34,26 @@ export async function* chatStream(
   },
   options: { abortSignal?: AbortSignal } = {},
 ) {
-  try{
-    const stream = fetchStream(resolveServiceURL("chat/stream"), {
-      body: JSON.stringify({
-        messages: [{ role: "user", content: userMessage }],
-        ...params,
-      }),
-      signal: options.abortSignal,
-    });
-    
+  const stream = fetchStream(resolveServiceURL("chat/stream"), {
+    body: JSON.stringify({
+      messages: [{ role: "user", content: userMessage }],
+      ...params,
+    }),
+    signal: options.abortSignal,
+  });
+
+  try {
     for await (const event of stream) {
       yield {
         type: event.event,
         data: JSON.parse(event.data),
       } as ChatEvent;
     }
-  }catch(e){
-    console.error(e);
+  } catch (error) {
+    if (!isAbortError(error)) {
+      console.error("chatStream failed", error);
+    }
+    throw error;
   }
 }
 
