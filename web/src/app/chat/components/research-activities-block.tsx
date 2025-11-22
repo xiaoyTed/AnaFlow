@@ -75,7 +75,7 @@ function ActivityMessage({ messageId }: { messageId: string }) {
     if (message.agent !== "reporter" && message.agent !== "planner") {
       return (
         <div className="px-4 py-2">
-          <Markdown animated checkLinkCredibility>
+          <Markdown animated={message.isStreaming} checkLinkCredibility>
             {message.content}
           </Markdown>
         </div>

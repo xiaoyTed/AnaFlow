@@ -280,14 +280,6 @@ def reporter_node(state: State):
     invoke_messages = apply_prompt_template("reporter", input_)
     observations = state.get("observations", [])
 
-    # Add a reminder about the new report format, citation style, and table usage
-    invoke_messages.append(
-        HumanMessage(
-            content="IMPORTANT: Structure your report according to the format in the prompt. Remember to include:\n\n1. Title - A concise title for the market analysis report\n2. Key Market Insights - 4-6 bulleted points of the most important findings\n3. Market Overview - Brief introduction and context (1-2 paragraphs)\n4. Detailed Market Analysis - Organized into logical sections with clear headings\n5. Market Survey Note (optional) - For more comprehensive reports\n\nWhen presenting market data:\n- Include relevant market visualizations from previous steps\n- Present facts and sales data accurately and impartially\n- Organize information logically with clear section headings\n- Highlight key market trends and sales insights\n- Use clear and concise language\n- Rely strictly on provided market data\n- Never fabricate or assume market information\n- Clearly distinguish between market facts and analysis\n\nPRIORITIZE USING MARKDOWN TABLES for market data presentation and comparison. Structure tables with clear headers and aligned columns. Example table format:\n\n| Market Metric | Value | YoY Change | Notes |\n|--------------|-------|------------|-------|\n| Metric 1 | Value 1 | Change 1 | Notes 1 |\n| Metric 2 | Value 2 | Change 2 | Notes 2 |",
-            name="system",
-        )
-    )
-
     for observation in observations:
         invoke_messages.append(
             HumanMessage(
