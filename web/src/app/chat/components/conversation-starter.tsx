@@ -8,10 +8,10 @@ import { cn } from "~/lib/utils";
 import { Welcome } from "./welcome";
 
 const questions = [
-  "请预测吉利银河E5 530未来6个月的销量",
-  "请预测吉利银河星舰7 未来6个月的销量",
-  "请预测长城坦克400 Hi4未来6个月的销量",
-  "请预测长城蓝山185未来6个月的销量",
+  "请预测吉利银河E5 530 未来6个月的销量",
+  "请预测吉利银河星舰7 101 未来6个月的销量",
+  "请预测长城坦克 400 Hi4-T 105未来6个月的销量",
+  "请预测长城蓝山 185 未来6个月的销量",
 ];
 export function ConversationStarter({
   className,

@@ -125,17 +125,6 @@ export function ResearchBlock({
         <div className="absolute right-4 flex h-9 items-center justify-center">
           {hasReport && !reportStreaming && (
             <>
-              <Tooltip title="Generate podcast">
-                <Button
-                  className="text-gray-400"
-                  size="icon"
-                  variant="ghost"
-                  disabled={isReplay}
-                  onClick={handleGeneratePodcast}
-                >
-                  <Headphones />
-                </Button>
-              </Tooltip>
               <Tooltip title="Edit">
                 <Button
                   className="text-gray-400"

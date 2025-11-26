@@ -76,14 +76,8 @@ export function MessagesBlock({ className }: { className?: string }) {
   const handleRemoveFeedback = useCallback(() => {
     setFeedback(null);
   }, [setFeedback]);
-  const handleStartReplay = useCallback(() => {
-    setReplayStarted(true);
-    void sendMessage();
-  }, [setReplayStarted]);
-  const [fastForwarding, setFastForwarding] = useState(false);
-  const handleFastForwardReplay = useCallback(() => {
-    setFastForwarding(!fastForwarding);
-  }, [fastForwarding]);
+
+
   return (
     <div className={cn("flex h-full flex-col", className)}>
       <MessageListView

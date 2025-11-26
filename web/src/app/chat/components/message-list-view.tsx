@@ -62,9 +62,6 @@ export function MessageListView({
 }) {
   const scrollContainerRef = useRef<ScrollContainerRef>(null);
   const messageIds = useMessageIds();
-  useEffect(() => {
-    console.log("messageIds", messageIds);
-  }, [messageIds]);
   const interruptMessage = useLastInterruptMessage();
   const waitingForFeedbackMessageId = useLastFeedbackMessageId();
   const responding = useStore((state) => state.responding);
