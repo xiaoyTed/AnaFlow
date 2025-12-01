@@ -7,7 +7,7 @@ WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml\* ./
+COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
 
 RUN \
     if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
@@ -19,10 +19,24 @@ RUN \
 ##### BUILDER
 
 FROM node:20-alpine AS builder
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 ARG NEXT_PUBLIC_API_URL
+
+# Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+
+# Copy package manager files (these change less frequently)
+COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+
+# Copy configuration files (these change less frequently than source code)
+COPY next.config.js tsconfig.json postcss.config.js prettier.config.js eslint.config.js components.json ./
+
+# Copy public assets (these change less frequently than source code)
+COPY public ./public
+
+# Copy source code (this changes most frequently, so it's last)
+COPY src ./src
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
@@ -52,8 +66,8 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-EXPOSE 3000
-ENV PORT=3000
+EXPOSE 3001
+ENV PORT=3001
 
 # Use dumb-init for proper signal handling (similar to distroless behavior)
 ENTRYPOINT ["dumb-init", "--"]
