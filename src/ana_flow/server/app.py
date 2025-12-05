@@ -39,21 +39,8 @@ from ana_flow.llms.llm import get_configured_llm_models
 from ana_flow.tools import VolcengineTTS
 
 import os
-log_path = "./ana_flow/logs"
-log_name = os.path.join(log_path, "agent_workflow.log")
-if not os.path.exists(log_path):
-    os.makedirs(log_path)
-file_handler = logging.FileHandler(log_name, mode="a", encoding="utf-8")
-file_handler.setLevel(logging.DEBUG)
-file_handler.setFormatter(
-    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-)
-# Set root logger level to DEBUG to allow all messages through
-logging.getLogger().setLevel(logging.DEBUG)
-logging.getLogger().addHandler(file_handler)
-
-# Create logger for this module
-logger = logging.getLogger(__name__)
+from ana_flow.utils.daily_logger import DailyLogger
+logger = DailyLogger(name=str(__name__), save_name="ana_flow")
 
 INTERNAL_SERVER_ERROR_DETAIL = "Internal Server Error"
 

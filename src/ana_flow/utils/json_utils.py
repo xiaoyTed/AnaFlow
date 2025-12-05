@@ -5,7 +5,8 @@ import logging
 import json
 import json_repair
 
-logger = logging.getLogger(__name__)
+from ana_flow.utils.daily_logger import DailyLogger
+logger = DailyLogger(save_name="ana_flow")
 
 
 def repair_json_output(content: str) -> str:

@@ -40,7 +40,8 @@ load_dotenv()
 PG_USER_NAME = os.getenv("PG_USER_NAME")
 PG_PASSWORD = os.getenv("PG_PASSWORD")
 
-logger = logging.getLogger(__name__)
+from ana_flow.utils.daily_logger import DailyLogger
+logger = DailyLogger(name=str(__name__), save_name="ana_flow")
 
 
 @tool
@@ -146,7 +147,6 @@ def planner_node(
             return Command(goto="__end__")
         
     logger.debug(f"Current state messages: {state['messages']}")
-    logger.info(f"Planner response: {full_response}")
     
     if curr_plan.get("has_enough_context"):
         logger.info("Planner response has enough market context.")

@@ -1,35 +1,10 @@
 import asyncio
-import logging
 from ana_flow.graph import build_graph
 from langchain.globals import set_debug
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,  # Default level is INFO
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-
-# save logging information to a file
 import os
-log_path = "./ana_flow/logs"
-log_name = os.path.join(log_path, "agent_workflow.log")
-if not os.path.exists(log_path):
-    os.makedirs(log_path)
-file_handler = logging.FileHandler(log_name, mode="a", encoding="utf-8")
-file_handler.setLevel(logging.INFO)
-file_handler.setFormatter(
-    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-)
-logging.getLogger().addHandler(file_handler)
 
-
-def enable_debug_logging():
-    """Enable debug level logging for more detailed execution information."""
-    logging.getLogger("src").setLevel(logging.DEBUG)
-    # set_debug(True)  # Enable langchain debug mode
-
-
-logger = logging.getLogger(__name__)
+from ana_flow.utils.daily_logger import DailyLogger
+logger = DailyLogger(save_name="ana_flow")
 
 # Create the graph
 graph = build_graph()
@@ -56,9 +31,6 @@ async def run_agent_workflow_async(
     """
     if not user_input:
         raise ValueError("Input could not be empty")
-
-    if debug:
-        enable_debug_logging()
 
     logger.info(f"Starting async workflow with user input: {user_input}")
     initial_state = {
