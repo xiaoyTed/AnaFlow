@@ -113,7 +113,7 @@ const DEFAULT_SETTINGS: SettingsState = {
     enableDeepThinking: false,
     enableBackgroundInvestigation: false,
     maxPlanIterations: 1,
-    maxStepNum: 3,
+    maxStepNum: 7,
     maxSearchResults: 1,
     reportStyle: "academic",
   },

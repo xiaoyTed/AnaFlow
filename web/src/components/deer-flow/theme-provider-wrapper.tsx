@@ -15,7 +15,7 @@ export function ThemeProviderWrapper({
   return (
     <ThemeProvider
       attribute="class"
-      defaultTheme={"dark"}
+      defaultTheme={"light"}
       disableTransitionOnChange
     >
       {children}

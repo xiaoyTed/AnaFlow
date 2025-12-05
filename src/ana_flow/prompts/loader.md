@@ -28,7 +28,7 @@ below is a sample list.
 2. export all history sales data which included in "quatity", just export sales data month by month which included in "year_month_code". If there are duplicated data in one same car brand, then merge it.
 
 3. After gathering all data, format your final answer as JSON:
-```ts
+```json
     {
     "model_specification": "car model name",
     "sale_data": [{"period": value, "quantity": value}, ...]

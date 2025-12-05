@@ -118,8 +118,7 @@ export const GeneralTab: Tab = ({
                     />
                   </FormControl>
                   <FormDescription>
-                    Set to 1 for single-step planning. Set to 2 or more to
-                    enable re-planning.
+                    Set to 1 for single-step planning. Set to 2 or more to run more iterations of the plan.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -143,7 +142,7 @@ export const GeneralTab: Tab = ({
                     />
                   </FormControl>
                   <FormDescription>
-                    By default, each research plan has 3 steps.
+                    By default, each research plan has 7 steps.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
